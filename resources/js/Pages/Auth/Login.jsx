@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import Checkbox from "@/Components/Checkbox";
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
@@ -7,6 +8,20 @@ import GuestLayout from "@/Layouts/GuestLayout";
 import { Head, Link, useForm } from "@inertiajs/react";
 
 export default function Login({ status, canResetPassword }) {
+    // CSRF-token ophalen
+    const [csrfToken, setCsrfToken] = useState("");
+
+    useEffect(() => {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) setCsrfToken(meta.getAttribute("content") || "");
+    }, []);
+
+    // XSS-bescherming
+    const sanitizeInput = (str) => {
+        if (typeof str !== "string") return str;
+        return str.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "").trim();
+    };
+
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
@@ -17,6 +32,11 @@ export default function Login({ status, canResetPassword }) {
         e.preventDefault();
 
         post(route("login"), {
+            data: {
+                email: sanitizeInput(data.email),
+                password: data.password,
+                remember: data.remember,
+            },
             onFinish: () => reset("password"),
         });
     };
@@ -31,42 +51,55 @@ export default function Login({ status, canResetPassword }) {
                 </div>
             )}
 
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
+            <form onSubmit={submit} className="space-y-6">
+                {csrfToken && (
+                    <input type="hidden" name="_token" value={csrfToken} />
+                )}
 
-                    <TextInput
+                <div>
+                    <label
+                        htmlFor="email"
+                        className="block text-sm font-medium text-[#0E3A5B]"
+                    >
+                        Gebruikersnaam
+                    </label>
+                    <input
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 block w-full"
+                        onChange={(e) =>
+                            setData("email", sanitizeInput(e.target.value))
+                        }
+                        className="mt-1 block w-full rounded-lg border-gray-300 focus:border-[#3FB950] focus:ring-[#3FB950]"
                         autoComplete="username"
-                        isFocused={true}
-                        onChange={(e) => setData("email", e.target.value)}
+                        required
                     />
-
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
+                <div>
+                    <label
+                        htmlFor="password"
+                        className="block text-sm font-medium text-[#0E3A5B]"
+                    >
+                        Wachtwoord
+                    </label>
+                    <input
                         id="password"
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
                         onChange={(e) => setData("password", e.target.value)}
+                        className="mt-1 block w-full rounded-lg border-gray-300 focus:border-[#3FB950] focus:ring-[#3FB950]"
+                        autoComplete="current-password"
+                        required
                     />
-
                     <InputError message={errors.password} className="mt-2" />
                 </div>
 
-                <div className="mt-4 block">
-                    <label className="flex items-center">
+                <div className="flex items-center justify-between">
+                    <label className="flex items-center text-sm text-gray-600">
                         <Checkbox
                             name="remember"
                             checked={data.remember}
@@ -74,31 +107,26 @@ export default function Login({ status, canResetPassword }) {
                                 setData("remember", e.target.checked)
                             }
                         />
-                        <span className="ms-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
+                        <span className="ml-2">Onthoud mij</span>
                     </label>
-                </div>
 
-                <div className="mt-4 flex items-center justify-end">
                     {canResetPassword && (
                         <Link
                             href={route("password.request")}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            className="text-sm text-[#0E3A5B] hover:underline"
                         >
-                            Forgot your password?
+                            Wachtwoord vergeten?
                         </Link>
                     )}
-                    <Link
-                        href={route("register")}
-                        className="rounded-md text-sm text-blue-600 underline hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ms-4"
-                    >
-                        Register
-                    </Link>
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
                 </div>
+
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="w-full rounded-lg bg-[#3FB950] py-2 font-medium text-white shadow hover:bg-[#36a043] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3FB950]"
+                >
+                    Inloggen
+                </button>
             </form>
         </GuestLayout>
     );

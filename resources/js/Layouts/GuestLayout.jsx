@@ -1,17 +1,31 @@
-import ApplicationLogo from '@/Components/ApplicationLogo';
-import { Link } from '@inertiajs/react';
+import ApplicationLogo from "@/Components/ApplicationLogo";
+import { Link } from "@inertiajs/react";
 
 export default function GuestLayout({ children }) {
     return (
-        <div className="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0">
-            <div>
-                <Link href="/">
-                    <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" />
-                </Link>
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[#F3F4F6] font-inter">
+            <div className="flex flex-col items-center mb-6">
+                <div className="flex items-center space-x-2">
+                    <div className="bg-[#0E3A5B] text-white font-bold rounded-full w-10 h-10 flex items-center justify-center text-xl">
+                        G
+                    </div>
+                    <h1 className="text-2xl font-semibold text-[#0E3A5B]">
+                        GeoProfs
+                    </h1>
+                </div>
             </div>
 
-            <div className="mt-6 w-full overflow-hidden bg-white px-6 py-4 shadow-md sm:max-w-md sm:rounded-lg">
-                {children}
+            <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg relative overflow-hidden">
+                <div
+                    className="absolute bottom-0 left-0 right-0 h-24 bg-[#0E3A5B]/5 rounded-b-2xl"
+                    style={{
+                        backgroundImage: "url('/img/hoogtelijnen.svg')",
+                        backgroundRepeat: "no-repeat",
+                        backgroundSize: "cover",
+                        opacity: 0.2,
+                    }}
+                />
+                <div className="relative z-10">{children}</div>
             </div>
         </div>
     );
