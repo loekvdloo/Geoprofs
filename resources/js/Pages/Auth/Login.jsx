@@ -95,15 +95,7 @@ const Login = () => {
                     </button>
                 </form>
 
-                <p className="text-center text-sm text-gray-600 mt-4">
-                    Nog geen account?{" "}
-                    <Link
-                        href="/auth/register"
-                        className="text-blue-600 hover:underline"
-                    >
-                        Registreer hier
-                    </Link>
-                </p>
+
             </div>
         </div>
     );
