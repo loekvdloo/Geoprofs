@@ -1,28 +1,40 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\VerlofaanvraagController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\VerlofaanvraagController;
 use App\Models\Verloftype;
+
 use App\Http\Controllers\VerlofBeoordelingController;
 
 
+use Inertia\Inertia;
 
+
+// Home redirect
 Route::get('/', function () {
-    return redirect()->route('login');
+    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Loginpagina alleen voor gasten
+Route::get('login', [AuthController::class, 'loginPage'])
+    ->name('login')
+    ->middleware('guest');
+
+// Logout route (altijd beschikbaar voor ingelogden)
+Route::post('/logout', [AuthController::class, 'logout'])
+    ->name('logout')
+    ->middleware('auth'); // alleen ingelogd kan uitloggen
+
+// Dashboard en andere beveiligde pagina's alleen voor ingelogden
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard', function () {
+        return Inertia::render('Dashboard');
+    })->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
     Route::get('/verlof/aanvraag', function () {
         return Inertia::render('Verlof/aanvraag', [
             'types' => Verloftype::orderBy('naam')->get(['verlof_type_id','naam','betaald']),
@@ -32,5 +44,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/verlof/beoordeling/{aanvraag}/accept', [VerlofBeoordelingController::class, 'accept']);
     Route::post('/verlof/beoordeling/{aanvraag}/reject', [VerlofBeoordelingController::class, 'reject']);
 });
+    Route::get('/verlof/test', function () {
+        return Inertia::render('Verlof/Test', [
+            'types' => Verloftype::orderBy('naam')
+                ->get(['verlof_type_id', 'naam', 'betaald']),
+        ]);
+    })->name('verlof.test');
 
-require __DIR__.'/auth.php';
+    Route::post('/verlof/aanvragen', [VerlofaanvraagController::class, 'store'])
+        ->name('verlof.store');
+});

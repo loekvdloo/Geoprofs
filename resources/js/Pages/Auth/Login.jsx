@@ -1,133 +1,104 @@
 import React, { useState, useEffect } from "react";
-import Checkbox from "@/Components/Checkbox";
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import TextInput from "@/Components/TextInput";
-import GuestLayout from "@/Layouts/GuestLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import axios from "axios";
+import { router, Link } from "@inertiajs/react";
 
-export default function Login({ status, canResetPassword }) {
-    // CSRF-token ophalen
-    const [csrfToken, setCsrfToken] = useState("");
+const Login = () => {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [processing, setProcessing] = useState(false);
+    const [generalError, setGeneralError] = useState("");
 
+    // Check of gebruiker al ingelogd is via token
     useEffect(() => {
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        if (meta) setCsrfToken(meta.getAttribute("content") || "");
+        const token = localStorage.getItem("token");
+        if (token) {
+            axios
+                .get("/api/user", {
+                    headers: { Authorization: `Bearer ${token}` },
+                })
+                .then(() => {
+                    router.visit("/dashboard"); // Redirect als token geldig is
+                })
+                .catch(() => {
+                    localStorage.removeItem("token"); // Ongeldige token verwijderen
+                });
+        }
     }, []);
 
-    // XSS-bescherming
-    const sanitizeInput = (str) => {
-        if (typeof str !== "string") return str;
-        return str.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "").trim();
-    };
-
-    const { data, setData, post, processing, errors, reset } = useForm({
-        email: "",
-        password: "",
-        remember: false,
-    });
-
-    const submit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setProcessing(true);
+        setGeneralError("");
 
-        post(route("login"), {
-            data: {
-                email: sanitizeInput(data.email),
-                password: data.password,
-                remember: data.remember,
-            },
-            onFinish: () => reset("password"),
-        });
+        try {
+            const response = await axios.post("/api/login", {
+                email,
+                password,
+            });
+
+            localStorage.setItem("token", response.data.access_token);
+
+            // Redirect naar dashboard
+            router.visit("/dashboard");
+        } catch (error) {
+            console.error(error);
+            setGeneralError("Inloggen mislukt. Controleer je gegevens.");
+        } finally {
+            setProcessing(false);
+        }
     };
 
     return (
-        <GuestLayout>
-            <Head title="Log in" />
+        <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
+            <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
+                <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
 
-            {status && (
-                <div className="mb-4 text-sm font-medium text-green-600">
-                    {status}
-                </div>
-            )}
-
-            <form onSubmit={submit} className="space-y-6">
-                {csrfToken && (
-                    <input type="hidden" name="_token" value={csrfToken} />
+                {generalError && (
+                    <p className="text-red-500 text-sm mb-4 text-center">
+                        {generalError}
+                    </p>
                 )}
 
-                <div>
-                    <label
-                        htmlFor="email"
-                        className="block text-sm font-medium text-[#0E3A5B]"
-                    >
-                        Gebruikersnaam
-                    </label>
-                    <input
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        onChange={(e) =>
-                            setData("email", sanitizeInput(e.target.value))
-                        }
-                        className="mt-1 block w-full rounded-lg border-gray-300 focus:border-[#3FB950] focus:ring-[#3FB950]"
-                        autoComplete="username"
-                        required
-                    />
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div>
-                    <label
-                        htmlFor="password"
-                        className="block text-sm font-medium text-[#0E3A5B]"
-                    >
-                        Wachtwoord
-                    </label>
-                    <input
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        onChange={(e) => setData("password", e.target.value)}
-                        className="mt-1 block w-full rounded-lg border-gray-300 focus:border-[#3FB950] focus:ring-[#3FB950]"
-                        autoComplete="current-password"
-                        required
-                    />
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <label className="flex items-center text-sm text-gray-600">
-                        <Checkbox
-                            name="remember"
-                            checked={data.remember}
-                            onChange={(e) =>
-                                setData("remember", e.target.checked)
-                            }
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Email
+                        </label>
+                        <input
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="mt-1 w-full border rounded-md p-2"
+                            required
                         />
-                        <span className="ml-2">Onthoud mij</span>
-                    </label>
+                    </div>
 
-                    {canResetPassword && (
-                        <Link
-                            href={route("password.request")}
-                            className="text-sm text-[#0E3A5B] hover:underline"
-                        >
-                            Wachtwoord vergeten?
-                        </Link>
-                    )}
-                </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                            Password
+                        </label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="mt-1 w-full border rounded-md p-2"
+                            required
+                        />
+                    </div>
 
-                <button
-                    type="submit"
-                    disabled={processing}
-                    className="w-full rounded-lg bg-[#3FB950] py-2 font-medium text-white shadow hover:bg-[#36a043] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#3FB950]"
-                >
-                    Inloggen
-                </button>
-            </form>
-        </GuestLayout>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                    >
+                        {processing ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+
+
+            </div>
+        </div>
     );
-}
+};
+
+export default Login;
