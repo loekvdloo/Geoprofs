@@ -10,4 +10,13 @@ class Verlofaanvraag extends Model {
     public $timestamps = false;
     protected $fillable = ['medewerker_id','verlof_type_id','start_datum','eind_datum','reden','aanvraag_datum','status'];
     protected $casts = ['start_datum'=>'date','eind_datum'=>'date','aanvraag_datum'=>'datetime'];
+    public function type()
+    {
+        return $this->belongsTo(\App\Models\Verloftype::class, 'verlof_type_id', 'verlof_type_id');
+    }
+
+    public function medewerker()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'medewerker_id', 'id');
+    }
 }

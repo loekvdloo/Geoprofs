@@ -7,11 +7,13 @@ use App\Http\Requests\StoreVerlofaanvraagRequest;
 use App\Models\Verloftype;
 use App\Models\Verlofaanvraag;
 
-
-
-class VerlofaanvraagController extends Controller {
-    public function create() {
-        return view('verlof.create', ['types' => Verloftype::orderBy('naam')->get()]);
+class VerlofaanvraagController extends Controller
+{
+    public function create()
+    {
+        return view('verlof.create', [
+            'types' => Verloftype::orderBy('naam')->get(),
+        ]);
     }
 
     public function store(StoreVerlofaanvraagRequest $request)
