@@ -14,9 +14,9 @@ class VerlofaanvraagController extends Controller {
         return view('verlof.create', ['types' => Verloftype::orderBy('naam')->get()]);
     }
 
-    public function store(\App\Http\Requests\StoreVerlofaanvraagRequest $request)
+    public function store(StoreVerlofaanvraagRequest $request)
     {
-        \App\Models\Verlofaanvraag::create([
+        Verlofaanvraag::create([
             'medewerker_id'  => $request->user()->id,
             'verlof_type_id' => $request->verlof_type_id,
             'start_datum'    => $request->start_datum,
