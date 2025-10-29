@@ -89,7 +89,7 @@ class AuthController extends Controller
      */
     public function loginPage()
     {
-        return Inertia::render('auth/login');
+        return Inertia::render('Auth/Login');
     }
 
     /**
