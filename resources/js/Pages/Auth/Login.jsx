@@ -1,29 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
-import { router, Link } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [processing, setProcessing] = useState(false);
     const [generalError, setGeneralError] = useState("");
-
-    // Check of gebruiker al ingelogd is via token
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            axios
-                .get("/api/user", {
-                    headers: { Authorization: `Bearer ${token}` },
-                })
-                .then(() => {
-                    router.visit("/dashboard"); // Redirect als token geldig is
-                })
-                .catch(() => {
-                    localStorage.removeItem("token"); // Ongeldige token verwijderen
-                });
-        }
-    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -36,12 +19,12 @@ const Login = () => {
                 password,
             });
 
+            // Token opslaan
             localStorage.setItem("token", response.data.access_token);
 
             // Redirect naar dashboard
             router.visit("/dashboard");
         } catch (error) {
-            console.error(error);
             setGeneralError("Inloggen mislukt. Controleer je gegevens.");
         } finally {
             setProcessing(false);
@@ -52,7 +35,6 @@ const Login = () => {
         <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
             <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
                 <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-
                 {generalError && (
                     <p className="text-red-500 text-sm mb-4 text-center">
                         {generalError}
@@ -75,7 +57,7 @@ const Login = () => {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
-                            Password
+                            Wachtwoord
                         </label>
                         <input
                             type="password"
@@ -91,11 +73,9 @@ const Login = () => {
                         disabled={processing}
                         className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
                     >
-                        {processing ? "Logging in..." : "Login"}
+                        {processing ? "Bezig..." : "Login"}
                     </button>
                 </form>
-
-
             </div>
         </div>
     );

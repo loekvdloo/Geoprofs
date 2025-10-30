@@ -2,57 +2,25 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\VerlofaanvraagController;
-use App\Models\Verloftype;
-
-use App\Http\Controllers\VerlofBeoordelingController;
-
-
 use Inertia\Inertia;
 
-
-// Home redirect
-Route::get('/', function () {
-    return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
-});
+// Home / Dashboard
+Route::get('/', fn() => Inertia::render('Dashboard'));
+Route::get('/dashboard', fn() => Inertia::render('Dashboard'));
 
 // Loginpagina alleen voor gasten
 Route::get('login', [AuthController::class, 'loginPage'])
     ->name('login')
     ->middleware('guest');
 
-// Logout route (altijd beschikbaar voor ingelogden)
+// Logout via API (token-based)
 Route::post('/logout', [AuthController::class, 'logout'])
-    ->name('logout')
-    ->middleware('auth'); // alleen ingelogd kan uitloggen
+    ->name('logout');
 
+// Verlof-aanvraag pagina (frontend layout)
+Route::get('/verlof/aanvraag', fn() => Inertia::render('Verlof/aanvraag'))
+    ->name('verlof.aanvraag');
 
-// Dashboard en andere beveiligde pagina's alleen voor ingelogden
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->name('dashboard');
-
-    Route::middleware('auth')->group(function () {
-        Route::get('/verlof/aanvraag', function () {
-            return Inertia::render('Verlof/aanvraag', [
-                'types' => Verloftype::orderBy('naam')->get(['verlof_type_id', 'naam', 'betaald']),
-            ]);
-        });
-        Route::post('/verlof/aanvragen', [VerlofaanvraagController::class, 'store'])->name('verlof.store');
-        Route::get('/verlof/beoordeling', [VerlofBeoordelingController::class, 'index'])->name('verlof.beoordeling');
-        Route::post('/verlof/beoordeling/{aanvraag}/accept', [VerlofBeoordelingController::class, 'accept']);
-        Route::post('/verlof/beoordeling/{aanvraag}/reject', [VerlofBeoordelingController::class, 'reject']);
-
-        Route::get('/verlof/aanvraag', function () {
-            return Inertia::render('Verlof/aanvraag', [
-                'types' => Verloftype::orderBy('naam')
-                    ->get(['verlof_type_id', 'naam', 'betaald']),
-            ]);
-        })->name('verlof.aanvraag');
-
-        Route::post('/verlof/aanvragen', [VerlofaanvraagController::class, 'store'])
-            ->name('verlof.store');
-    });
-
-});
+// Verlof-beoordeling pagina (frontend layout)
+Route::get('/verlof/beoordeling', fn() => Inertia::render('Verlof/beoordeling'))
+    ->name('verlof.beoordeling');

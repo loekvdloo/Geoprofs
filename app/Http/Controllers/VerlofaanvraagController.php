@@ -2,32 +2,55 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Http\Requests\StoreVerlofaanvraagRequest;
-use App\Models\Verloftype;
 use App\Models\Verlofaanvraag;
 
+/**
+ * @OA\Tag(
+ *     name="Verlofaanvraag",
+ *     description="API endpoints voor verlof aanvragen"
+ * )
+ */
 class VerlofaanvraagController extends Controller
 {
-    public function create()
-    {
-        return view('verlof.create', [
-            'types' => Verloftype::orderBy('naam')->get(),
-        ]);
-    }
-
+    /**
+     * @OA\Post(
+     *     path="/verlof/aanvragen",
+     *     summary="Verlof aanvragen indienen",
+     *     tags={"Verlof"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"verlof_type_id","start_datum","eind_datum","reden"},
+     *             @OA\Property(property="verlof_type_id", type="integer"),
+     *             @OA\Property(property="start_datum", type="string", format="date"),
+     *             @OA\Property(property="eind_datum", type="string", format="date"),
+     *             @OA\Property(property="reden", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Verlofaanvraag succesvol ingediend"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
     public function store(StoreVerlofaanvraagRequest $request)
     {
         Verlofaanvraag::create([
-            'medewerker_id'  => $request->user()->id,
+            'medewerker_id' => $request->user()->id,
             'verlof_type_id' => $request->verlof_type_id,
-            'start_datum'    => $request->start_datum,
-            'eind_datum'     => $request->eind_datum,
-            'reden'          => $request->reden,
+            'start_datum' => $request->start_datum,
+            'eind_datum' => $request->eind_datum,
+            'reden' => $request->reden,
             'aanvraag_datum' => now(),
-            'status'         => 'pending',
+            'status' => 'pending',
         ]);
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Verlofaanvraag ingediend']);
+        }
 
-        return back()->with('success', 'Verlofaanvraag ingediend');
+        return redirect()->back()->with('success', 'Verlofaanvraag ingediend');
     }
 }

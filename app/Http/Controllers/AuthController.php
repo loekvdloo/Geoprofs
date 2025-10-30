@@ -39,7 +39,7 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             required={"name","email","password","password_confirmation"},
      *             @OA\Property(property="name", type="string", example="loek"),
-     *             @OA\Property(property="email", type="string", example="loek2@loek.nl"),
+     *             @OA\Property(property="email", type="string", example="loek@loek.nl"),
      *             @OA\Property(property="password", type="string", example="12345678"),
      *             @OA\Property(property="password_confirmation", type="string", example="12345678")
      *         )
@@ -101,7 +101,7 @@ class AuthController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="loek1@loek.nl"),
+     *             @OA\Property(property="email", type="string", example="loek@loek.nl"),
      *             @OA\Property(property="password", type="string", example="12345678")
      *         )
      *     ),
@@ -131,24 +131,6 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'Bearer',
         ]);
-        // $request->validate([
-        //     'email' => 'required|email',
-        //     'password' => 'required|string',
-        // ]);
-
-        // $user = User::where('email', $request->email)->first();
-
-        // if (!$user || !Hash::check($request->password, $user->password)) {
-        //     return response()->json(['message' => 'Invalid login credentials'], 401);
-        // }
-
-        // $token = $user->createToken('auth_token')->plainTextToken;
-
-        // return response()->json([
-        //     'message' => 'Login successful',
-        //     'access_token' => $token,
-        //     'token_type' => 'Bearer',
-        // ]);
     }
     /**
      * @OA\Get(
