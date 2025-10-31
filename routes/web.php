@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\AuditLoginController;
 use Inertia\Inertia;
 
 // Home / Dashboard
@@ -9,7 +10,7 @@ Route::get('/', fn() => Inertia::render('Dashboard'));
 Route::get('/dashboard', fn() => Inertia::render('Dashboard'));
 
 // Loginpagina alleen voor gasten
-Route::get('login', [AuthController::class, 'loginPage'])
+Route::get('/login', fn () => Inertia::render('Auth/Login'))
     ->name('login')
     ->middleware('guest');
 
@@ -24,3 +25,6 @@ Route::get('/verlof/aanvraag', fn() => Inertia::render('Verlof/aanvraag'))
 // Verlof-beoordeling pagina (frontend layout)
 Route::get('/verlof/beoordeling', fn() => Inertia::render('Verlof/beoordeling'))
     ->name('verlof.beoordeling');
+
+
+Route::post('/login', [AuditLoginController::class, 'login'])->name('login.post');

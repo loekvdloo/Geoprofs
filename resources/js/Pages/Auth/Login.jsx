@@ -1,84 +1,62 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { router } from "@inertiajs/react";
 
-const Login = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [processing, setProcessing] = useState(false);
-    const [generalError, setGeneralError] = useState("");
+export default function Login() {
+    const [email, setEmail] = useState("kameel@kameel.com");
+    const [password, setPassword] = useState("12345678");
+    const [error, setError] = useState("");
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setProcessing(true);
-        setGeneralError("");
+        setError("");
 
-        try {
-            const response = await axios.post("/api/login", {
-                email,
-                password,
-            });
+        const res = await fetch("http://127.0.0.1:8000/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ email, password }),
+        });
 
-            // Token opslaan
-            localStorage.setItem("token", response.data.access_token);
+        const data = await res.json();
+        console.log("login-response", res.status, data);
 
-            // Redirect naar dashboard
-            router.visit("/dashboard");
-        } catch (error) {
-            setGeneralError("Inloggen mislukt. Controleer je gegevens.");
-        } finally {
-            setProcessing(false);
+        if (!res.ok) {
+            setError(data.message || "Inloggen mislukt");
+            return;
         }
+
+        window.location.href = "/dashboard";
     };
 
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
-            <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
-                <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
-                {generalError && (
-                    <p className="text-red-500 text-sm mb-4 text-center">
-                        {generalError}
-                    </p>
-                )}
+        <div className="p-8 max-w-md mx-auto">
+            <h1 className="text-2xl mb-4">Login</h1>
+            <form onSubmit={handleSubmit}>
+                <label className="block mb-2">
+                    E-mail
+                    <input
+                        className="border w-full p-2"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        type="email"
+                    />
+                </label>
+                <label className="block mb-2">
+                    Wachtwoord
+                    <input
+                        className="border w-full p-2"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        type="password"
+                    />
+                </label>
+                <button className="bg-black text-white px-4 py-2" type="submit">
+                    Inloggen
+                </button>
+            </form>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 w-full border rounded-md p-2"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                            Wachtwoord
-                        </label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 w-full border rounded-md p-2"
-                            required
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
-                    >
-                        {processing ? "Bezig..." : "Login"}
-                    </button>
-                </form>
-            </div>
+            {error && <p className="text-red-500 mt-3">{error}</p>}
         </div>
     );
-};
-
-export default Login;
+}

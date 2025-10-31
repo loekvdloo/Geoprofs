@@ -17,14 +17,37 @@ class User extends Authenticatable
      *
      * @var array
      */
-
     protected $primaryKey = 'user_id';
 
     protected $fillable = [
-        'name',
+        'voornaam',
+        'achternaam',
         'email',
-        'password',
+        'telefoonnummer',
+        'afdeling_id',
+        'role_id',
+        'account_status',
     ];
+
+    public function afdeling()
+    {
+        return $this->belongsTo(Afdeling::class, 'afdeling_id', 'afdeling_id');
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'role_id', 'role_id');
+    }
+
+    public function authData()
+    {
+        return $this->hasOne(GebruikerAuth::class, 'user_id', 'user_id');
+    }
+
+    public function loginAttempts()
+    {
+        return $this->hasMany(LoginAttempt::class, 'user_id', 'user_id');
+    }
 
     /**
      * The attributes that should be hidden for arrays.

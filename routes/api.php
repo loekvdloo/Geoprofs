@@ -7,7 +7,8 @@ use App\Http\Controllers\VerlofBeoordelingController;
 use App\Models\Verloftype;
 
 // Login via API
-Route::post('login', [AuthController::class, 'apiLogin']);
+Route::post('/login', [AuthController::class, 'apiLogin']);
+Route::post('/logout', [AuthController::class, 'apiLogout']);
 
 // Alleen beschermd via Bearer-token
 Route::middleware('auth:sanctum')->group(function () {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\LoginAttempt;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -119,19 +120,63 @@ class AuthController extends Controller
      */
     public function apiLogin(Request $request)
     {
-        if (!auth()->attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid login details'], 401);
+        $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (! $user) {
+            $this->logAttempt(null, $request->ip(), false, 'unknown_email');
+
+            return response()->json([
+                'message' => 'Ongeldige inloggegevens.',
+            ], 401);
         }
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+        if (! Hash::check($request->password, $user->password)) {
+            $this->logAttempt($user->user_id, $request->ip(), false, 'wrong_password');
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+            return response()->json([
+                'message' => 'Ongeldige inloggegevens.',
+            ], 401);
+        }
+
+        Auth::login($user);
+        $this->logAttempt($user->user_id, $request->ip(), true, null);
 
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
+            'message' => 'Inloggen gelukt.',
+            'user' => $user,
         ]);
     }
+
+    /**
+     * API logout (optioneel)
+     */
+    public function apiLogout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json([
+            'message' => 'Uitgelogd.',
+        ]);
+    }
+
+    private function logAttempt($userId, $ip, $success, $reason)
+    {
+        LoginAttempt::create([
+            'user_id' => $userId,
+            'attempt_time' => now(),
+            'attempt_ip' => $ip,
+            'succes' => $success,
+            'failure_reason' => $reason,
+        ]);
+    }
+
     /**
      * @OA\Get(
      *     path="/user",
