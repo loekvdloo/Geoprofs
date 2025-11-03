@@ -10,23 +10,40 @@ export default function Beoordeling() {
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
 
+    // 1️⃣ Haal ingelogde user op
     useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            router.visit("/login");
+            return;
+        }
+
         axios
-            .get("/api/user")
+            .get("/api/user", {
+                headers: { Authorization: `Bearer ${token}` },
+            })
             .then((res) => setUser(res.data))
-            .catch(() => router.visit("/login"));
+            .catch(() => {
+                localStorage.removeItem("token");
+                router.visit("/login");
+            });
     }, []);
 
+    // 2️⃣ Check admin + haal aanvragen
     useEffect(() => {
-        if (!user) return; 
+        if (!user) return;
 
         if (user.role !== "admin") {
             router.visit("/dashboard");
             return;
         }
 
+        const token = localStorage.getItem("token");
+
         axios
-            .get("/api/verlof/beoordeling")
+            .get("/api/verlof/beoordeling", {
+                headers: { Authorization: `Bearer ${token}` },
+            })
             .then((res) => setAanvragen(res.data))
             .catch((err) => {
                 console.error(err);
@@ -35,10 +52,21 @@ export default function Beoordeling() {
             .finally(() => setLoading(false));
     }, [user]);
 
+    // 3️⃣ Accept/Reject functies
     const handleAccept = async (id) => {
         setProcessing(true);
         try {
-            await axios.post(`/api/verlof/beoordeling/${id}/accept`);
+            await axios.post(
+                `/api/verlof/beoordeling/${id}/accept`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
             setAanvragen((prev) =>
                 prev.map((a) =>
                     a.aanvraag_id === id ? { ...a, status: "accepted" } : a
@@ -54,8 +82,17 @@ export default function Beoordeling() {
     const handleReject = async (id) => {
         setProcessing(true);
         try {
-            await axios.post(`/api/verlof/beoordeling/${id}/reject`);
-
+            await axios.post(
+                `/api/verlof/beoordeling/${id}/reject`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                        )}`,
+                    },
+                }
+            );
             setAanvragen((prev) =>
                 prev.map((a) =>
                     a.aanvraag_id === id ? { ...a, status: "rejected" } : a
@@ -67,8 +104,10 @@ export default function Beoordeling() {
             setProcessing(false);
         }
     };
+
+    // 4️⃣ Loading-state
     if (!user || loading) {
-        return <p className="text-center mt-10">Loading...</p>;
+        return <p className="text-center mt-10">Laden...</p>;
     }
 
     return (
