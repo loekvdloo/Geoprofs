@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\LoginAttempt;
+use App\Services\LoginAttemptService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -30,6 +31,13 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    protected $loginService;
+
+    public function __construct(LoginAttemptService $loginService)
+    {
+        $this->loginService = $loginService;
+    }
+
     /**
      * @OA\Post(
      *     path="/register",
@@ -134,44 +142,39 @@ class AuthController extends Controller
     public function apiLogin(Request $request)
     {
         $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        // Onbekend e-mailadres → log attempt met null user_id
+        //Onbekende gebruiker
         if (! $user) {
-            $this->logAttempt(null, $request->ip(), false, 'unknown_email');
-
-            return response()->json([
-                'message' => 'Invalid login details',
-            ], 401);
+            $this->loginService->recordAttempt(null, $request->ip(), false, 'unknown_email');
+            return response()->json(['message' => 'Invalid login details'], 401);
         }
 
-        // Verkeerd wachtwoord
+        //Geblokkeerde gebruiker
+        if (! $user->account_status) {
+            $this->loginService->recordAttempt($user, $request->ip(), false, 'blocked_account');
+            return response()->json(['message' => 'Account is geblokkeerd.'], 403);
+        }
+
+        //Fout wachtwoord
         if (! Hash::check($request->password, $user->password)) {
-            // Let op: jouw PK is user_id
-            $this->logAttempt($user->user_id, $request->ip(), false, 'wrong_password');
-
-            return response()->json([
-                'message' => 'Invalid login details',
-            ], 401);
+            $this->loginService->recordAttempt($user, $request->ip(), false, 'wrong_password');
+            return response()->json(['message' => 'Invalid login details'], 401);
         }
 
-        // ✅ Geen Auth::login(): API blijft stateless
+        //Succesvol
         $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Succesvolle poging loggen
-        $this->logAttempt($user->user_id, $request->ip(), true, null);
+        $this->loginService->recordAttempt($user, $request->ip(), true, null);
 
         return response()->json([
             'access_token' => $token,
             'token_type'   => 'Bearer',
         ]);
     }
-
-
 
     private function logAttempt($userId, $ip, $success, $reason)
     {
