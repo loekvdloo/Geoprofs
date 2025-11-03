@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { router } from "@inertiajs/react";
-import axios from "axios"; // axios komt met interceptor
+import axios from "axios";
 
 const AuthenticatedLayout = ({ children }) => {
     const [loading, setLoading] = useState(true);
+    const [userName, setUserName] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -12,10 +13,14 @@ const AuthenticatedLayout = ({ children }) => {
             return;
         }
 
-        // check of token geldig is
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
         axios
             .get("/api/user")
-            .then(() => setLoading(false))
+            .then(({ data }) => {
+                setUserName(data.name || "Gebruiker");
+                setLoading(false);
+            })
             .catch(() => {
                 localStorage.removeItem("token");
                 router.visit("/login");
@@ -25,7 +30,7 @@ const AuthenticatedLayout = ({ children }) => {
     const handleLogout = async (e) => {
         e.preventDefault();
         try {
-            await axios.post("/api/logout"); // token wordt automatisch meegestuurd
+            await axios.post("/api/logout");
             localStorage.removeItem("token");
             router.visit("/login");
         } catch (error) {
@@ -33,17 +38,30 @@ const AuthenticatedLayout = ({ children }) => {
         }
     };
 
-    if (loading) return <div>Laden...</div>;
+    if (loading)
+        return (
+            <div className="flex items-center justify-center h-screen bg-[#F3F4F6]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0E3A5B]"></div>
+            </div>
+        );
 
     return (
-        <div>
-            <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
-                <h1 className="text-lg font-bold">Geoprofs</h1>
-                <nav>
-                    <button onClick={handleLogout} className="hover:underline">
-                        Logout
-                    </button>
-                </nav>
+        <div className="min-h-screen bg-[#F3F4F6]">
+            <header className="bg-[#0E3A5B] text-white p-4 flex justify-between items-center shadow">
+                <h1 className="text-xl font-bold">GeoProfs</h1>
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <a href="/profile" className="hover:underline">
+                            {userName}
+                        </a>
+                        <button
+                            onClick={handleLogout}
+                            className="hover:underline"
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
             </header>
             <main className="p-6">{children}</main>
         </div>
