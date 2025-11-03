@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Verlofaanvraag;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerlofStatusMail;
 
 /**
  * @OA\Tag(
@@ -60,6 +62,9 @@ class VerlofBeoordelingController extends Controller
     {
         $aanvraag->update(['status' => 'accepted']);
 
+        Mail::to($aanvraag->medewerker->email)
+            ->send(new VerlofStatusMail($aanvraag, 'accepted'));
+
         return response()->json(['message' => 'Verlofaanvraag geaccepteerd']);
     }
 
@@ -83,6 +88,9 @@ class VerlofBeoordelingController extends Controller
     public function reject(Verlofaanvraag $aanvraag)
     {
         $aanvraag->update(['status' => 'rejected']);
+
+        Mail::to($aanvraag->medewerker->email)
+            ->send(new VerlofStatusMail($aanvraag, 'rejected'));
 
         return response()->json(['message' => 'Verlofaanvraag afgewezen']);
 

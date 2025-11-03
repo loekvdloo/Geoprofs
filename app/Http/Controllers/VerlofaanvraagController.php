@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreVerlofaanvraagRequest;
 use App\Models\Verlofaanvraag;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VerlofAanvraagMail;
+use App\Models\Verloftype;
 
 /**
  * @OA\Tag(
@@ -38,7 +41,7 @@ class VerlofaanvraagController extends Controller
      */
     public function store(StoreVerlofaanvraagRequest $request)
     {
-        Verlofaanvraag::create([
+        $aanvraag = Verlofaanvraag::create([
             'medewerker_id' => $request->user()->id,
             'verlof_type_id' => $request->verlof_type_id,
             'start_datum' => $request->start_datum,
@@ -47,6 +50,10 @@ class VerlofaanvraagController extends Controller
             'aanvraag_datum' => now(),
             'status' => 'pending',
         ]);
-            return response()->json(['message' => 'Verlofaanvraag ingediend']);
- }
+
+        // Stuur e-mail naar de ingelogde gebruiker
+        Mail::to($request->user()->email)->send(new VerlofAanvraagMail($aanvraag));
+
+        return response()->json(['message' => 'Verlofaanvraag ingediend']);
+    }
 }
