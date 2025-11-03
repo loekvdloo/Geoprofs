@@ -18,40 +18,34 @@ export default function Beoordeling({ auth }) {
             .finally(() => setLoading(false));
     }, []);
 
-    const handleAccept = (id) => {
-        router.post(
-            `/api/verlof/beoordeling/${id}/accept`,
-            {},
-            {
-                onSuccess: () => {
-                    setAanvragen((prev) =>
-                        prev.map((a) =>
-                            a.aanvraag_id === id
-                                ? { ...a, status: "accepted" }
-                                : a
-                        )
-                    );
-                },
-            }
-        );
+    const handleAccept = async (id) => {
+        try {
+            await axios.post(`/api/verlof/beoordeling/${id}/accept`);
+
+            setAanvragen((prev) =>
+                prev.map((a) =>
+                    a.aanvraag_id === id ? { ...a, status: "accepted" } : a
+                )
+            );
+            router.visit("/verlof/beoordeling");
+        } catch (err) {
+            console.error(err);
+        }
     };
 
-    const handleReject = (id) => {
-        router.post(
-            `/api/verlof/beoordeling/${id}/reject`,
-            {},
-            {
-                onSuccess: () => {
-                    setAanvragen((prev) =>
-                        prev.map((a) =>
-                            a.aanvraag_id === id
-                                ? { ...a, status: "rejected" }
-                                : a
-                        )
-                    );
-                },
-            }
-        );
+    const handleReject = async (id) => {
+        try {
+            await axios.post(`/api/verlof/beoordeling/${id}/reject`);
+
+            setAanvragen((prev) =>
+                prev.map((a) =>
+                    a.aanvraag_id === id ? { ...a, status: "rejected" } : a
+                )
+            );
+            router.visit("/verlof/beoordeling");
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (

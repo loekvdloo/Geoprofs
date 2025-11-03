@@ -8,7 +8,7 @@ use App\Models\Verloftype;
 
 // Login via API
 Route::post('login', [AuthController::class, 'apiLogin']);
-
+Route::post('/register', [AuthController::class, 'register']);
 // Alleen beschermd via Bearer-token
 Route::middleware('auth:sanctum')->group(function () {
 

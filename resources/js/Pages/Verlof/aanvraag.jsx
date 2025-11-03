@@ -1,33 +1,44 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "@inertiajs/react";
 import axios from "axios";
+import { router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 
-export default function Test({ auth }) {
-    const { data, setData, post, processing, reset } = useForm({
+export default function Verlofaanvraag({ auth }) {
+    const [form, setForm] = useState({
         verlof_type_id: "",
         start_datum: "",
         eind_datum: "",
         reden: "",
     });
-
     const [types, setTypes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
 
-    // Fetch verlof types via API
     useEffect(() => {
         axios
             .get("/api/verlof/types")
             .then((res) => setTypes(res.data))
-            .catch((err) => console.error(err))
+            .catch(console.error)
             .finally(() => setLoading(false));
     }, []);
 
-    function submit(e) {
+    const handleChange = (field, value) => {
+        setForm({ ...form, [field]: value });
+    };
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        post("/api/verlof/aanvragen", { onSuccess: () => reset() });
-    }
+        setProcessing(true);
+        try {
+            await axios.post("/api/verlof/aanvragen", form);
+            router.visit("/verlof/aanvraag");
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setProcessing(false);
+        }
+    };
 
     return (
         <AuthenticatedLayout user={auth.user}>
@@ -39,15 +50,18 @@ export default function Test({ auth }) {
                 {loading ? (
                     <p>Loading...</p>
                 ) : (
-                    <form onSubmit={submit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium">
                                 Verloftype
                             </label>
                             <select
-                                value={data.verlof_type_id}
+                                value={form.verlof_type_id}
                                 onChange={(e) =>
-                                    setData("verlof_type_id", e.target.value)
+                                    handleChange(
+                                        "verlof_type_id",
+                                        e.target.value
+                                    )
                                 }
                                 className="mt-1 w-full rounded border p-2"
                                 required
@@ -74,9 +88,12 @@ export default function Test({ auth }) {
                                 </label>
                                 <input
                                     type="date"
-                                    value={data.start_datum}
+                                    value={form.start_datum}
                                     onChange={(e) =>
-                                        setData("start_datum", e.target.value)
+                                        handleChange(
+                                            "start_datum",
+                                            e.target.value
+                                        )
                                     }
                                     className="mt-1 w-full rounded border p-2"
                                     required
@@ -88,9 +105,12 @@ export default function Test({ auth }) {
                                 </label>
                                 <input
                                     type="date"
-                                    value={data.eind_datum}
+                                    value={form.eind_datum}
                                     onChange={(e) =>
-                                        setData("eind_datum", e.target.value)
+                                        handleChange(
+                                            "eind_datum",
+                                            e.target.value
+                                        )
                                     }
                                     className="mt-1 w-full rounded border p-2"
                                     required
@@ -104,9 +124,9 @@ export default function Test({ auth }) {
                             </label>
                             <textarea
                                 rows="3"
-                                value={data.reden}
+                                value={form.reden}
                                 onChange={(e) =>
-                                    setData("reden", e.target.value)
+                                    handleChange("reden", e.target.value)
                                 }
                                 className="mt-1 w-full rounded border p-2"
                                 required

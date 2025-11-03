@@ -59,12 +59,8 @@ class VerlofBeoordelingController extends Controller
     public function accept(Verlofaanvraag $aanvraag)
     {
         $aanvraag->update(['status' => 'accepted']);
-        
-        if (request()->wantsJson()) {
-            return response()->json(['message' => 'Verlofaanvraag geaccepteerd']);
-        }
 
-        return redirect()->back()->with('success', 'Verlofaanvraag geaccepteerd');
+        return response()->json(['message' => 'Verlofaanvraag geaccepteerd']);
     }
 
     /**
@@ -88,11 +84,7 @@ class VerlofBeoordelingController extends Controller
     {
         $aanvraag->update(['status' => 'rejected']);
 
-        if (request()->wantsJson()) {
-            return response()->json(['message' => 'Verlofaanvraag afgewezen']);
-        }
-
-        return redirect()->back()->with('success', 'Verlofaanvraag afgewezen');
+        return response()->json(['message' => 'Verlofaanvraag afgewezen']);
 
     }
 }

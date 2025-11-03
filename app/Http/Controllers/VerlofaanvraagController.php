@@ -47,10 +47,6 @@ class VerlofaanvraagController extends Controller
             'aanvraag_datum' => now(),
             'status' => 'pending',
         ]);
-        if ($request->wantsJson()) {
             return response()->json(['message' => 'Verlofaanvraag ingediend']);
-        }
-
-        return redirect()->back()->with('success', 'Verlofaanvraag ingediend');
-    }
+ }
 }
