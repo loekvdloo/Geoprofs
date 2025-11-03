@@ -6,9 +6,9 @@ use App\Http\Controllers\VerlofaanvraagController;
 use App\Http\Controllers\VerlofBeoordelingController;
 use App\Models\Verloftype;
 
-// Login via API
+// Login - registreren via API
 Route::post('/login', [AuthController::class, 'apiLogin']);
-Route::post('/logout', [AuthController::class, 'apiLogout']);
+Route::post('/register', [AuthController::class, 'register']);
 
 // Alleen beschermd via Bearer-token
 Route::middleware('auth:sanctum')->group(function () {

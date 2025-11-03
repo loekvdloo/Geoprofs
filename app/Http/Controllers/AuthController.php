@@ -59,29 +59,42 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'voornaam'       => 'required|string|max:255',
+            'achternaam'     => 'required|string|max:255',
+            'email'          => 'required|string|email|max:255|unique:users,email',
+            'password'       => 'required|string|min:6|confirmed',
+            'telefoonnummer' => 'nullable|string|max:50',
+
+            // als jouw schema booleans heeft:
+            'manager'        => 'sometimes|boolean',
+            'blocked'        => 'sometimes|boolean',
+            // LET OP: account_status is boolean in jouw DB
+            'account_status' => 'sometimes|boolean',
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $data = $validator->validated();
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'voornaam'       => $data['voornaam'],
+            'achternaam'     => $data['achternaam'],
+            'email'          => $data['email'],
+            'password'       => $data['password'],
+            'telefoonnummer' => $data['telefoonnummer'] ?? null,
+            'afdeling_id'    => $data['afdeling_id'] ?? null,
+            'role_id'        => $data['role_id'] ?? null,
+            'account_status' => $data['account_status'] ?? true,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'User registered successfully',
+            'message'      => 'User registered successfully',
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type'   => 'Bearer',
         ], 201);
     }
 
@@ -121,50 +134,44 @@ class AuthController extends Controller
     public function apiLogin(Request $request)
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'email'    => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         $user = User::where('email', $request->email)->first();
 
+        // Onbekend e-mailadres → log attempt met null user_id
         if (! $user) {
             $this->logAttempt(null, $request->ip(), false, 'unknown_email');
 
             return response()->json([
-                'message' => 'Ongeldige inloggegevens.',
+                'message' => 'Invalid login details',
             ], 401);
         }
 
+        // Verkeerd wachtwoord
         if (! Hash::check($request->password, $user->password)) {
+            // Let op: jouw PK is user_id
             $this->logAttempt($user->user_id, $request->ip(), false, 'wrong_password');
 
             return response()->json([
-                'message' => 'Ongeldige inloggegevens.',
+                'message' => 'Invalid login details',
             ], 401);
         }
 
-        Auth::login($user);
+        // ✅ Geen Auth::login(): API blijft stateless
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Succesvolle poging loggen
         $this->logAttempt($user->user_id, $request->ip(), true, null);
 
         return response()->json([
-            'message' => 'Inloggen gelukt.',
-            'user' => $user,
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
         ]);
     }
 
-    /**
-     * API logout (optioneel)
-     */
-    public function apiLogout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
-        return response()->json([
-            'message' => 'Uitgelogd.',
-        ]);
-    }
 
     private function logAttempt($userId, $ip, $success, $reason)
     {

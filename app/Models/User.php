@@ -27,6 +27,7 @@ class User extends Authenticatable
         'afdeling_id',
         'role_id',
         'account_status',
+        'password',
     ];
 
     public function afdeling()
@@ -58,7 +59,6 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
     /**
      * The attributes that should be cast to native types.
      *
@@ -66,5 +66,6 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
     ];
 }

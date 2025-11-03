@@ -13,10 +13,9 @@ return new class extends Migration
     {
         Schema::create('login_attempts', function (Blueprint $table) {
             $table->id('attempt_id');
-
             $table->unsignedBigInteger('user_id')->nullable();
             $table->dateTime('attempt_time');
-            $table->string('attempt_ip', 45)->nullable(); // ipv4/ipv6
+            $table->string('attempt_ip', 45)->nullable();
             $table->boolean('succes')->default(false);
             $table->string('failure_reason')->nullable();
 
