@@ -1,39 +1,58 @@
 import React, { useEffect, useState } from "react";
-import { useForm, router } from "@inertiajs/react";
+import { router } from "@inertiajs/react";
 import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 
-export default function Beoordeling({ auth }) {
-    const { processing } = useForm();
+export default function Beoordeling() {
+    const [user, setUser] = useState(null);
     const [aanvragen, setAanvragen] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
 
-    // Fetch verlofaanvragen via API
     useEffect(() => {
+        axios
+            .get("/api/user")
+            .then((res) => setUser(res.data))
+            .catch(() => router.visit("/login"));
+    }, []);
+
+    useEffect(() => {
+        if (!user) return; 
+
+        if (user.role !== "admin") {
+            router.visit("/dashboard");
+            return;
+        }
+
         axios
             .get("/api/verlof/beoordeling")
             .then((res) => setAanvragen(res.data))
-            .catch((err) => console.error(err))
+            .catch((err) => {
+                console.error(err);
+                if (err.response?.status === 401) router.visit("/login");
+            })
             .finally(() => setLoading(false));
-    }, []);
+    }, [user]);
 
     const handleAccept = async (id) => {
+        setProcessing(true);
         try {
             await axios.post(`/api/verlof/beoordeling/${id}/accept`);
-
             setAanvragen((prev) =>
                 prev.map((a) =>
                     a.aanvraag_id === id ? { ...a, status: "accepted" } : a
                 )
             );
-            router.visit("/verlof/beoordeling");
         } catch (err) {
             console.error(err);
+        } finally {
+            setProcessing(false);
         }
     };
 
     const handleReject = async (id) => {
+        setProcessing(true);
         try {
             await axios.post(`/api/verlof/beoordeling/${id}/reject`);
 
@@ -42,22 +61,23 @@ export default function Beoordeling({ auth }) {
                     a.aanvraag_id === id ? { ...a, status: "rejected" } : a
                 )
             );
-            router.visit("/verlof/beoordeling");
         } catch (err) {
             console.error(err);
+        } finally {
+            setProcessing(false);
         }
     };
+    if (!user || loading) {
+        return <p className="text-center mt-10">Loading...</p>;
+    }
 
     return (
-        <AuthenticatedLayout user={auth.user}>
+        <AuthenticatedLayout user={user}>
             <Head title="Verlofaanvragen beoordelen" />
-
             <div className="max-w-5xl mx-auto p-6">
                 <h1 className="text-2xl font-semibold mb-6">Verlofaanvragen</h1>
 
-                {loading ? (
-                    <p>Loading...</p>
-                ) : aanvragen.length === 0 ? (
+                {aanvragen.length === 0 ? (
                     <p className="text-gray-600 mt-4 text-center">
                         Geen verlofaanvragen gevonden.
                     </p>
