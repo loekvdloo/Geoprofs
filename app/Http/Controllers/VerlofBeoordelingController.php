@@ -87,4 +87,14 @@ class VerlofBeoordelingController extends Controller
         return response()->json(['message' => 'Verlofaanvraag afgewezen']);
 
     }
+
+    public function mijnAanvragen()
+    {
+        $aanvragen = Verlofaanvraag::with('type')
+            ->where('medewerker_id', auth()->id())
+            ->orderByDesc('aanvraag_datum')
+            ->get();
+
+        return response()->json($aanvragen);
+    }
 }
