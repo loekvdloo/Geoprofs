@@ -270,6 +270,83 @@
                 ]
             }
         },
+        "/mijn-aanvragen": {
+            "get": {
+                "tags": [
+                    "Verlof"
+                ],
+                "summary": "Haal de verlofaanvragen van de ingelogde medewerker op",
+                "operationId": "a1824db35e7e305c7ceefc9055dcb7a2",
+                "responses": {
+                    "200": {
+                        "description": "Lijst van verlofaanvragen succesvol opgehaald",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "medewerker_id": {
+                                                "type": "integer",
+                                                "example": 42
+                                            },
+                                            "type": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "naam": {
+                                                        "type": "string",
+                                                        "example": "Ziekteverlof"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "aanvraag_datum": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-11-04"
+                                            },
+                                            "start_datum": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-11-10"
+                                            },
+                                            "eind_datum": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-11-12"
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "example": "In afwachting"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    },
+                    "500": {
+                        "description": "Serverfout"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/verlof/aanvragen": {
             "post": {
                 "tags": [

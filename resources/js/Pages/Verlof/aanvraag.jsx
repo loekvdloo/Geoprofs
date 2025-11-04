@@ -22,7 +22,6 @@ export default function Verlofaanvraag({ auth }) {
     const [mijnAanvragen, setMijnAanvragen] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Fetch verlof types & mijn aanvragen
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -41,12 +40,10 @@ export default function Verlofaanvraag({ auth }) {
         fetchData();
     }, []);
 
-    // Handle form field changes
     const handleChange = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    // Submit nieuwe verlofaanvraag
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
@@ -56,7 +53,6 @@ export default function Verlofaanvraag({ auth }) {
                 },
             });
 
-            // Reset formulier
             reset();
             setForm({
                 verlof_type_id: "",
@@ -65,12 +61,9 @@ export default function Verlofaanvraag({ auth }) {
                 reden: "",
             });
 
-            // Refresh de lijst van mijn aanvragen
             const res = await axios.get("/api/verlof/mijn-aanvragen");
             setMijnAanvragen(res.data);
 
-            // Optioneel: redirect naar overzicht (hier blijft op dezelfde pagina)
-            // router.visit("/verlof/aanvraag");
         } catch (err) {
             console.error(err);
         }

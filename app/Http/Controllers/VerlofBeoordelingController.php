@@ -95,7 +95,38 @@ class VerlofBeoordelingController extends Controller
         return response()->json(['message' => 'Verlofaanvraag afgewezen']);
 
     }
-
+    /**
+     * @OA\Get(
+     *     path="/mijn-aanvragen",
+     *     summary="Haal de verlofaanvragen van de ingelogde medewerker op",
+     *     tags={"Verlof"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lijst van verlofaanvragen succesvol opgehaald",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="medewerker_id", type="integer", example=42),
+     *                 @OA\Property(
+     *                     property="type",
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=2),
+     *                     @OA\Property(property="naam", type="string", example="Ziekteverlof")
+     *                 ),
+     *                 @OA\Property(property="aanvraag_datum", type="string", format="date", example="2025-11-04"),
+     *                 @OA\Property(property="start_datum", type="string", format="date", example="2025-11-10"),
+     *                 @OA\Property(property="eind_datum", type="string", format="date", example="2025-11-12"),
+     *                 @OA\Property(property="status", type="string", example="In afwachting")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Niet geautoriseerd"),
+     *     @OA\Response(response=500, description="Serverfout")
+     * )
+     */
     public function mijnAanvragen()
     {
         $aanvragen = Verlofaanvraag::with('type')
