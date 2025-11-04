@@ -1,3 +1,5 @@
+import React from "react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 import React, { useEffect, useState } from "react";
 import { router } from "@inertiajs/react";
 import axios from "axios";
@@ -6,36 +8,13 @@ const AuthenticatedLayout = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [userName, setUserName] = useState("");
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            router.visit("/login");
-            return;
-        }
+export default function AuthenticatedLayout({ children }) {
+    const { auth } = usePage().props;               // komt uit HandleInertiaRequests
+    const { post, processing } = useForm({});
 
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-        axios
-            .get("/api/user")
-            .then(({ data }) => {
-                setUserName(data.name || "Gebruiker");
-                setLoading(false);
-            })
-            .catch(() => {
-                localStorage.removeItem("token");
-                router.visit("/login");
-            });
-    }, []);
-
-    const handleLogout = async (e) => {
+    const handleLogout = (e) => {
         e.preventDefault();
-        try {
-            await axios.post("/api/logout");
-            localStorage.removeItem("token");
-            router.visit("/login");
-        } catch (error) {
-            console.error("Logout failed:", error);
-        }
+        post(route("logout"));                        // POST /logout (web.php)
     };
 
     if (loading)
