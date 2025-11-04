@@ -1,17 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useForm, router } from "@inertiajs/react";
 import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 
 export default function Verlofaanvraag({ auth }) {
-    const { processing, reset } = useForm({
-        verlof_type_id: "",
-        start_datum: "",
-        eind_datum: "",
-        reden: "",
-    });
-
     const [form, setForm] = useState({
         verlof_type_id: "",
         start_datum: "",
@@ -21,18 +13,28 @@ export default function Verlofaanvraag({ auth }) {
     const [types, setTypes] = useState([]);
     const [mijnAanvragen, setMijnAanvragen] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             try {
+                const token = localStorage.getItem("token");
                 const [typesRes, aanvragenRes] = await Promise.all([
-                    axios.get("/api/verlof/types"),
-                    axios.get("/api/verlof/mijn-aanvragen"),
+                    axios.get("/api/verlof/types", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                    axios.get("/api/verlof/mijn-aanvragen", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
                 ]);
                 setTypes(typesRes.data);
                 setMijnAanvragen(aanvragenRes.data);
             } catch (err) {
                 console.error(err);
+                setError(
+                    "Kon data niet laden. Controleer je token of netwerk."
+                );
             } finally {
                 setLoading(false);
             }
@@ -46,14 +48,13 @@ export default function Verlofaanvraag({ auth }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
         try {
+            const token = localStorage.getItem("token");
             await axios.post("/api/verlof/aanvragen", form, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
+                headers: { Authorization: `Bearer ${token}` },
             });
 
-            reset();
             setForm({
                 verlof_type_id: "",
                 start_datum: "",
@@ -61,11 +62,13 @@ export default function Verlofaanvraag({ auth }) {
                 reden: "",
             });
 
-            const res = await axios.get("/api/verlof/mijn-aanvragen");
+            const res = await axios.get("/api/verlof/mijn-aanvragen", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             setMijnAanvragen(res.data);
-
         } catch (err) {
             console.error(err);
+            setError("Kon aanvraag niet indienen.");
         }
     };
 
@@ -74,6 +77,13 @@ export default function Verlofaanvraag({ auth }) {
             <Head title="Verlofaanvraag" />
 
             <div className="max-w-5xl mx-auto p-6 space-y-8">
+                {/* ERROR */}
+                {error && (
+                    <p className="text-red-500 text-center font-medium mb-4">
+                        {error}
+                    </p>
+                )}
+
                 {/* FORMULIER */}
                 <div>
                     <h1 className="text-2xl font-semibold mb-4">
@@ -87,7 +97,10 @@ export default function Verlofaanvraag({ auth }) {
                             <select
                                 value={form.verlof_type_id}
                                 onChange={(e) =>
-                                    handleChange("verlof_type_id", e.target.value)
+                                    handleChange(
+                                        "verlof_type_id",
+                                        e.target.value
+                                    )
                                 }
                                 className="mt-1 w-full rounded border p-2"
                                 required
@@ -98,7 +111,10 @@ export default function Verlofaanvraag({ auth }) {
                                         key={t.verlof_type_id}
                                         value={t.verlof_type_id}
                                     >
-                                        {t.naam} {t.betaald ? "(betaald)" : "(onbetaald)"}
+                                        {t.naam}{" "}
+                                        {t.betaald
+                                            ? "(betaald)"
+                                            : "(onbetaald)"}
                                     </option>
                                 ))}
                             </select>
@@ -113,7 +129,10 @@ export default function Verlofaanvraag({ auth }) {
                                     type="date"
                                     value={form.start_datum}
                                     onChange={(e) =>
-                                        handleChange("start_datum", e.target.value)
+                                        handleChange(
+                                            "start_datum",
+                                            e.target.value
+                                        )
                                     }
                                     className="mt-1 w-full rounded border p-2"
                                     required
@@ -127,7 +146,10 @@ export default function Verlofaanvraag({ auth }) {
                                     type="date"
                                     value={form.eind_datum}
                                     onChange={(e) =>
-                                        handleChange("eind_datum", e.target.value)
+                                        handleChange(
+                                            "eind_datum",
+                                            e.target.value
+                                        )
                                     }
                                     className="mt-1 w-full rounded border p-2"
                                     required
@@ -142,7 +164,9 @@ export default function Verlofaanvraag({ auth }) {
                             <textarea
                                 rows="3"
                                 value={form.reden}
-                                onChange={(e) => handleChange("reden", e.target.value)}
+                                onChange={(e) =>
+                                    handleChange("reden", e.target.value)
+                                }
                                 className="mt-1 w-full rounded border p-2"
                                 required
                             />
@@ -150,18 +174,18 @@ export default function Verlofaanvraag({ auth }) {
 
                         <button
                             type="submit"
-                            disabled={processing}
                             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
                         >
-                            {processing ? "Bezig…" : "Indienen"}
+                            Indienen
                         </button>
                     </form>
                 </div>
 
                 {/* TABEL MIJN AANVRAGEN */}
                 <div>
-                    <h2 className="text-2xl font-semibold mb-4">Mijn verlofaanvragen</h2>
-
+                    <h2 className="text-2xl font-semibold mb-4">
+                        Mijn verlofaanvragen
+                    </h2>
                     {loading ? (
                         <p>Loading...</p>
                     ) : mijnAanvragen.length === 0 ? (
@@ -180,16 +204,22 @@ export default function Verlofaanvraag({ auth }) {
                             </thead>
                             <tbody>
                                 {mijnAanvragen.map((a) => (
-                                    <tr key={a.aanvraag_id} className="border-t">
+                                    <tr
+                                        key={a.aanvraag_id}
+                                        className="border-t"
+                                    >
                                         <td className="p-3">{a.type?.naam}</td>
-                                        <td className="p-3">{a.start_datum} - {a.eind_datum}</td>
+                                        <td className="p-3">
+                                            {a.start_datum} - {a.eind_datum}
+                                        </td>
                                         <td className="p-3">{a.reden}</td>
                                         <td className="p-3">
                                             <span
                                                 className={`px-2 py-1 rounded text-sm ${
                                                     a.status === "pending"
                                                         ? "bg-yellow-200 text-yellow-800"
-                                                        : a.status === "accepted"
+                                                        : a.status ===
+                                                          "accepted"
                                                         ? "bg-green-200 text-green-800"
                                                         : "bg-red-200 text-red-800"
                                                 }`}

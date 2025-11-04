@@ -51,7 +51,7 @@ const AuthenticatedLayout = ({ children }) => {
                 <a href="/dashboard"><h1 className="text-xl font-bold">GeoProfs</h1></a>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <a href="/profile" className="hover:underline">
+                        <a href="/profile/edit" className="hover:underline">
                             {userName}
                         </a>
                         <button
