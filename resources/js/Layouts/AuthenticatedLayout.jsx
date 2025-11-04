@@ -1,53 +1,43 @@
-import React, { useEffect, useState } from "react";
-import { router } from "@inertiajs/react";
-import axios from "axios"; // axios komt met interceptor
+import React from "react";
+import { Link, useForm, usePage } from "@inertiajs/react";
 
-const AuthenticatedLayout = ({ children }) => {
-    const [loading, setLoading] = useState(true);
+export default function AuthenticatedLayout({ children }) {
+    const { auth } = usePage().props;               // komt uit HandleInertiaRequests
+    const { post, processing } = useForm({});
 
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            router.visit("/login");
-            return;
-        }
-
-        // check of token geldig is
-        axios
-            .get("/api/user")
-            .then(() => setLoading(false))
-            .catch(() => {
-                localStorage.removeItem("token");
-                router.visit("/login");
-            });
-    }, []);
-
-    const handleLogout = async (e) => {
+    const handleLogout = (e) => {
         e.preventDefault();
-        try {
-            await axios.post("/api/logout"); // token wordt automatisch meegestuurd
-            localStorage.removeItem("token");
-            router.visit("/login");
-        } catch (error) {
-            console.error("Logout failed:", error);
-        }
+        post(route("logout"));                        // POST /logout (web.php)
     };
-
-    if (loading) return <div>Laden...</div>;
 
     return (
         <div>
-            <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
-                <h1 className="text-lg font-bold">Geoprofs</h1>
-                <nav>
-                    <button onClick={handleLogout} className="hover:underline">
-                        Logout
-                    </button>
-                </nav>
+            <header className="bg-gray-800 text-white">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <nav className="space-x-4">
+                        <Link className="hover:underline" href={route("dashboard")}>Dashboard</Link>
+                        <Link className="hover:underline" href={route("verlof.aanvraag")}>Verlof aanvragen</Link>
+                        <Link className="hover:underline" href={route("verlof.beoordeling")}>Verlof beoordeling</Link>
+                    </nav>
+
+                    <div className="flex items-center gap-4">
+                        {auth?.user && (
+                            <span className="text-sm opacity-80">
+                {auth.user.voornaam} {auth.user.achternaam} ({auth.user.email})
+              </span>
+                        )}
+                        <button
+                            onClick={handleLogout}
+                            disabled={processing}
+                            className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded"
+                        >
+                            {processing ? "Afmelden…" : "Afmelden"}
+                        </button>
+                    </div>
+                </div>
             </header>
-            <main className="p-6">{children}</main>
+
+            <main className="max-w-7xl mx-auto p-6">{children}</main>
         </div>
     );
-};
-
-export default AuthenticatedLayout;
+}

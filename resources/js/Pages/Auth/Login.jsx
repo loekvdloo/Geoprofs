@@ -1,5 +1,5 @@
 import React from "react";
-import { useForm } from "@inertiajs/react";
+import { useForm, router } from "@inertiajs/react";
 
 export default function Login() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -10,8 +10,14 @@ export default function Login() {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("login.perform"), {
+        post("/login", {
             onFinish: () => reset("password"),
+            onSuccess: () => {
+                router.visit("/dashboard"); // Redirect naar dashboard bij succes
+            },
+            onError: () => {
+                // Je kan hier extra handling toevoegen als nodig
+            },
         });
     };
 

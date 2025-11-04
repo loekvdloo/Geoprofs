@@ -65,6 +65,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $casts = [
+        'account_status' => 'boolean',
+        'blocked'        => 'boolean',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];

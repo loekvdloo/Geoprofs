@@ -1,24 +1,20 @@
 <?php
 
+use App\Http\Controllers\Web\Auth\LoginController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Auth\AuditLoginController;
 use Inertia\Inertia;
 
-// Home / Dashboard
-// Home / Dashboard (alleen ingelogd)
+// Alleen voor ingelogden
 Route::middleware('auth')->group(function () {
     Route::get('/', fn () => Inertia::render('Dashboard'))->name('home');
     Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
-
-    // WEB (sessie) logout
-    Route::post('/logout', [AuthController::class, 'webLogout'])->name('logout');
+    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 });
 
-// Loginpagina + inloggen (alleen voor gasten)
+// Alleen voor gasten
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'loginPage'])->name('login');
-    Route::post('/login', [AuthController::class, 'webLogin'])->name('login.perform');
+    Route::get('/login', [LoginController::class, 'create'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])->name('login.store');
 });
 
 
