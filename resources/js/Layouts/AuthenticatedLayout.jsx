@@ -48,7 +48,7 @@ const AuthenticatedLayout = ({ children }) => {
     return (
         <div className="min-h-screen bg-[#F3F4F6]">
             <header className="bg-[#0E3A5B] text-white p-4 flex justify-between items-center shadow">
-                <h1 className="text-xl font-bold">GeoProfs</h1>
+                <a href="/dashboard"><h1 className="text-xl font-bold">GeoProfs</h1></a>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <a href="/profile" className="hover:underline">
