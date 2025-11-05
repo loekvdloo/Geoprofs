@@ -37,6 +37,8 @@ export default function AuthenticatedLayout({ children }) {
                 </a>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
+                        <a href="/profile/edit" className="hover:underline">
+                            {userName}
                         <a href="/profile" className="hover:underline">
                             {userName || "Profiel"}
                         </a>

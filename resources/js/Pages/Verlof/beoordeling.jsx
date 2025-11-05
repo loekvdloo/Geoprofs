@@ -4,13 +4,27 @@ import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 
+const api = axios.create({
+    baseURL: "/api",
+    headers: {
+        Accept: "application/json",
+    },
+});
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
 export default function Beoordeling() {
     const [user, setUser] = useState(null);
     const [aanvragen, setAanvragen] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState("");
 
-    // 1️⃣ Haal ingelogde user op
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -18,10 +32,7 @@ export default function Beoordeling() {
             return;
         }
 
-        axios
-            .get("/api/user", {
-                headers: { Authorization: `Bearer ${token}` },
-            })
+        api.get("/user")
             .then((res) => setUser(res.data))
             .catch(() => {
                 localStorage.removeItem("token");
@@ -29,7 +40,6 @@ export default function Beoordeling() {
             });
     }, []);
 
-    // 2️⃣ Check admin + haal aanvragen
     useEffect(() => {
         if (!user) return;
 
@@ -38,35 +48,21 @@ export default function Beoordeling() {
             return;
         }
 
-        const token = localStorage.getItem("token");
-
-        axios
-            .get("/api/verlof/beoordeling", {
-                headers: { Authorization: `Bearer ${token}` },
-            })
+        setLoading(true);
+        api.get("/verlof/beoordeling")
             .then((res) => setAanvragen(res.data))
             .catch((err) => {
                 console.error(err);
+                setError("Kon aanvragen niet laden.");
                 if (err.response?.status === 401) router.visit("/login");
             })
             .finally(() => setLoading(false));
     }, [user]);
 
-    // 3️⃣ Accept/Reject functies
     const handleAccept = async (id) => {
         setProcessing(true);
         try {
-            await axios.post(
-                `/api/verlof/beoordeling/${id}/accept`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem(
-                            "token"
-                        )}`,
-                    },
-                }
-            );
+            await api.post(`/verlof/beoordeling/${id}/accept`);
             setAanvragen((prev) =>
                 prev.map((a) =>
                     a.aanvraag_id === id ? { ...a, status: "accepted" } : a
@@ -74,6 +70,7 @@ export default function Beoordeling() {
             );
         } catch (err) {
             console.error(err);
+            setError("Kon aanvraag niet accepteren.");
         } finally {
             setProcessing(false);
         }
@@ -82,17 +79,7 @@ export default function Beoordeling() {
     const handleReject = async (id) => {
         setProcessing(true);
         try {
-            await axios.post(
-                `/api/verlof/beoordeling/${id}/reject`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem(
-                            "token"
-                        )}`,
-                    },
-                }
-            );
+            await api.post(`/verlof/beoordeling/${id}/reject`);
             setAanvragen((prev) =>
                 prev.map((a) =>
                     a.aanvraag_id === id ? { ...a, status: "rejected" } : a
@@ -100,12 +87,12 @@ export default function Beoordeling() {
             );
         } catch (err) {
             console.error(err);
+            setError("Kon aanvraag niet weigeren.");
         } finally {
             setProcessing(false);
         }
     };
 
-    // 4️⃣ Loading-state
     if (!user || loading) {
         return <p className="text-center mt-10">Laden...</p>;
     }
@@ -114,6 +101,12 @@ export default function Beoordeling() {
         <AuthenticatedLayout user={user}>
             <Head title="Verlofaanvragen beoordelen" />
             <div className="max-w-5xl mx-auto p-6">
+                {error && (
+                    <p className="text-red-500 text-center font-medium mb-4">
+                        {error}
+                    </p>
+                )}
+
                 <h1 className="text-2xl font-semibold mb-6">Verlofaanvragen</h1>
 
                 {aanvragen.length === 0 ? (

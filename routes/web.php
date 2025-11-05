@@ -25,3 +25,6 @@ Route::get('/verlof/aanvraag', fn() => Inertia::render('Verlof/aanvraag'))
 // Verlof-beoordeling pagina (frontend layout)
 Route::get('/verlof/beoordeling', fn() => Inertia::render('Verlof/beoordeling'))
     ->name('verlof.beoordeling');
+
+Route::get('/profile/edit', fn() => Inertia::render('Profile/Edit'))
+    ->name('profile.edit');

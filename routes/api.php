@@ -34,4 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Verlof aanvragen beoordelen
     Route::post('verlof/beoordeling/{aanvraag}/accept', [VerlofBeoordelingController::class, 'accept']);
     Route::post('verlof/beoordeling/{aanvraag}/reject', [VerlofBeoordelingController::class, 'reject']);
+
+    Route::get('user', [AuthController::class, 'user']);
+    Route::put('user', [AuthController::class, 'updateUser']);
+    Route::put('user/password', [AuthController::class, 'updatePassword']);
 });

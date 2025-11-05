@@ -173,25 +173,36 @@ class AuthController extends Controller
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="Authenticated user",
+     *         description="Authenticated user data",
      *         @OA\JsonContent(
      *             @OA\Property(property="id", type="integer", example=1),
      *             @OA\Property(property="name", type="string", example="loek"),
-     *             @OA\Property(property="email", type="string", example="loek1@loek.nl")
+     *             @OA\Property(property="email", type="string", example="loek@loek.nl")
      *         )
      *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
+     *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
     public function user(Request $request)
     {
         return $request->user();
     }
+
     /**
-     * Optional: logout API token
+     * @OA\Post(
+     *     path="/logout",
+     *     summary="Logout the current user (invalidate token)",
+     *     tags={"Auth"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Logged out successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Logged out successfully")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
      */
     public function logout(Request $request)
     {
@@ -203,4 +214,99 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/user",
+     *     summary="Update user profile (name and email)",
+     *     tags={"Profile"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","email"},
+     *             @OA\Property(property="name", type="string", example="Nieuwe Naam"),
+     *             @OA\Property(property="email", type="string", example="nieuweemail@voorbeeld.nl")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Profile updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Profiel succesvol bijgewerkt."),
+     *             @OA\Property(property="user", type="object",
+     *                 @OA\Property(property="id", type="integer", example=1),
+     *                 @OA\Property(property="name", type="string", example="Nieuwe Naam"),
+     *                 @OA\Property(property="email", type="string", example="nieuweemail@voorbeeld.nl")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=422, description="Validation error"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function updateUser(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+        ]);
+
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Profiel succesvol bijgewerkt.',
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/user/password",
+     *     summary="Update user password (requires current password)",
+     *     tags={"Profile"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"current_password","password","password_confirmation"},
+     *             @OA\Property(property="current_password", type="string", example="oudeWachtwoord123"),
+     *             @OA\Property(property="password", type="string", example="NieuwWachtwoord123"),
+     *             @OA\Property(property="password_confirmation", type="string", example="NieuwWachtwoord123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password updated successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Wachtwoord succesvol gewijzigd.")
+     *         )
+     *     ),
+     *     @OA\Response(response=422, description="Invalid or mismatched passwords"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function updatePassword(Request $request)
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if (!\Hash::check($validated['current_password'], $user->password)) {
+            return response()->json([
+                'message' => 'Huidig wachtwoord is onjuist.'
+            ], 422);
+        }
+
+        $user->password = \Hash::make($validated['password']);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Wachtwoord succesvol gewijzigd.'
+        ]);
+    }
 }

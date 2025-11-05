@@ -33,13 +33,8 @@ class VerlofBeoordelingController extends Controller
             ->orderByDesc('aanvraag_datum')
             ->get();
 
-        if (request()->wantsJson()) {
             return response()->json($aanvragen);
-        }
 
-        return inertia('Beoordeling', [
-            'aanvragen' => $aanvragen,
-        ]);
     }
 
     /**

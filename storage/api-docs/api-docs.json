@@ -75,6 +75,9 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 }
             }
@@ -117,10 +120,6 @@
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Login successful"
-                                        },
                                         "access_token": {
                                             "type": "string"
                                         },
@@ -149,7 +148,7 @@
                 "operationId": "99e9c2c91427f6bf63c2f0ef765a768f",
                 "responses": {
                     "200": {
-                        "description": "Authenticated user",
+                        "description": "Authenticated user data",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -164,13 +163,192 @@
                                         },
                                         "email": {
                                             "type": "string",
-                                            "example": "loek1@loek.nl"
+                                            "example": "loek@loek.nl"
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update user profile (name and email)",
+                "operationId": "80ebf638c4879c932918da2ecc1015d6",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Nieuwe Naam"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "nieuweemail@voorbeeld.nl"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profiel succesvol bijgewerkt."
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Nieuwe Naam"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "nieuweemail@voorbeeld.nl"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout the current user (invalidate token)",
+                "operationId": "68a6108af04af5e3bc1ea68a6c6f1299",
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/password": {
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update user password (requires current password)",
+                "operationId": "a067090b9e7fa5f1fdee10cb7f639902",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string",
+                                        "example": "oudeWachtwoord123"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "NieuwWachtwoord123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "NieuwWachtwoord123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Wachtwoord succesvol gewijzigd."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid or mismatched passwords"
                     },
                     "401": {
                         "description": "Unauthenticated"
@@ -417,6 +595,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile"
         },
         {
             "name": "Verlof",
