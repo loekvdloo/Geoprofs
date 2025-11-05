@@ -1,21 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\AuthController as ApiAuth;
 use App\Http\Controllers\VerlofaanvraagController;
 use App\Http\Controllers\VerlofBeoordelingController;
 use App\Models\Verloftype;
+use Illuminate\Support\Facades\Route;
 
-// Login & registratie
-Route::post('login', [AuthController::class, 'apiLogin']);
-Route::post('register', [AuthController::class, 'register']);
+// Login - registreren via API
+Route::post('/register', [ApiAuth::class, 'register']);
+Route::post('/login',    [ApiAuth::class, 'apiLogin']);
 
-// Beschermde routes
+
+// Alleen beschermd via Bearer-token
 Route::middleware('auth:sanctum')->group(function () {
 
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::get('user', [AuthController::class, 'user']);
+    // Logout en user info
+    Route::get('/user',    [ApiAuth::class, 'user']);
+    Route::post('/logout', [ApiAuth::class, 'logout']);
 
     // Verloftypes ophalen
     Route::get('verlof/types', fn() =>
@@ -39,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('verlof/beoordeling/{aanvraag}/reject', [VerlofBeoordelingController::class, 'reject']);
 
     // Gebruikersbeheer
-    Route::get('user', [AuthController::class, 'user']);
-    Route::put('user', [AuthController::class, 'updateUser']);
-    Route::put('user/password', [AuthController::class, 'updatePassword']);
+    Route::get('user', [ApiAuth::class, 'user']);
+    Route::put('user', [ApiAuth::class, 'updateUser']);
+    Route::put('user/password', [ApiAuth::class, 'updatePassword']);
 });
