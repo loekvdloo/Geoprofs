@@ -28,7 +28,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('telefoonnummer')->nullable();
             $table->boolean('account_status')->default(true);
-
+            $table->integer('verlofsaldo')->default('25');
             $table->timestamps();
         });
     }
