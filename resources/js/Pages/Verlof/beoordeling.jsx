@@ -4,20 +4,6 @@ import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
 
-const api = axios.create({
-    baseURL: "/api",
-    headers: {
-        Accept: "application/json",
-    },
-});
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-});
-
 export default function Beoordeling() {
     const [user, setUser] = useState(null);
     const [aanvragen, setAanvragen] = useState([]);
@@ -32,7 +18,8 @@ export default function Beoordeling() {
             return;
         }
 
-        api.get("/user")
+        axios
+            .get("/api/user", { headers: { Authorization: `Bearer ${token}` } })
             .then((res) => setUser(res.data))
             .catch(() => {
                 localStorage.removeItem("token");
@@ -43,26 +30,53 @@ export default function Beoordeling() {
     useEffect(() => {
         if (!user) return;
 
-        if (user.role !== "admin") {
+        if (user.role_id !== 1) {
             router.visit("/dashboard");
             return;
         }
 
+        const token = localStorage.getItem("token");
+        if (!token) {
+            router.visit("/login");
+            return;
+        }
+
         setLoading(true);
-        api.get("/verlof/beoordeling")
-            .then((res) => setAanvragen(res.data))
-            .catch((err) => {
+
+        const fetchData = async () => {
+            try {
+                const token = localStorage.getItem("token");
+
+                const [typesRes, aanvragenRes] = await Promise.all([
+                    axios.get("/api/verlof/types", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                    axios.get("/api/verlof/mijn-aanvragen", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
+                ]);
+
+                setAanvragen(aanvragenRes.data);
+            } catch (err) {
                 console.error(err);
                 setError("Kon aanvragen niet laden.");
                 if (err.response?.status === 401) router.visit("/login");
-            })
-            .finally(() => setLoading(false));
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, [user]);
 
     const handleAccept = async (id) => {
         setProcessing(true);
+        const token = localStorage.getItem("token");
         try {
-            await api.post(`/verlof/beoordeling/${id}/accept`);
+            await axios.post(
+                `/api/verlof/beoordeling/${id}/accept`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             setAanvragen((prev) =>
                 prev.map((a) =>
                     a.aanvraag_id === id ? { ...a, status: "accepted" } : a
@@ -78,8 +92,13 @@ export default function Beoordeling() {
 
     const handleReject = async (id) => {
         setProcessing(true);
+        const token = localStorage.getItem("token");
         try {
-            await api.post(`/verlof/beoordeling/${id}/reject`);
+            await axios.post(
+                `/api/verlof/beoordeling/${id}/reject`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             setAanvragen((prev) =>
                 prev.map((a) =>
                     a.aanvraag_id === id ? { ...a, status: "rejected" } : a
@@ -129,7 +148,7 @@ export default function Beoordeling() {
                             {aanvragen.map((a) => (
                                 <tr key={a.aanvraag_id} className="border-t">
                                     <td className="p-3">
-                                        {a.medewerker?.name}
+                                        {a.medewerker?.voornaam}
                                     </td>
                                     <td className="p-3">{a.type?.naam}</td>
                                     <td className="p-3">

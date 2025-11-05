@@ -57,7 +57,7 @@ class VerlofTest extends TestCase
 
         // Controleer database — gebruik juiste tabelnaam
         $this->assertDatabaseHas('verlofaanvragen', [
-            'medewerker_id' => $user->id,
+            'user_id' => $user->id,
             'verlof_type_id' => $verloftype->id,
             'reden' => 'Vakantie',
             'status' => 'pending',

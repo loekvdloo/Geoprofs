@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function Edit() {
-    const [user, setUser] = useState({ name: "", email: "" });
+    const [user, setUser] = useState({ voornaam: "", email: "" });
     const [loading, setLoading] = useState(true);
     const [profileSuccess, setProfileSuccess] = useState("");
     const [passwordSuccess, setPasswordSuccess] = useState("");
@@ -24,7 +24,10 @@ export default function Edit() {
         axios
             .get("/api/user")
             .then(({ data }) => {
-                setUser({ name: data.name, email: data.email });
+                setUser({
+                    voornaam: data.voornaam || "",
+                    email: data.email || "",
+                });
                 setLoading(false);
             })
             .catch(() => {
@@ -48,6 +51,7 @@ export default function Edit() {
             setProfileSuccess(res.data.message);
         } catch (err) {
             if (err.response?.data?.errors) setErrors(err.response.data.errors);
+            else console.error(err.response?.data?.error);
         }
     };
 
@@ -94,18 +98,18 @@ export default function Edit() {
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700">
-                            Naam
+                            Voornaam
                         </label>
                         <input
                             type="text"
-                            name="name"
-                            value={user.name}
+                            name="voornaam"
+                            value={user.voornaam || ""}
                             onChange={handleChange}
                             className="mt-1 w-full border rounded p-2"
                         />
-                        {errors.name && (
+                        {errors.voornaam && (
                             <p className="text-red-500 text-sm">
-                                {errors.name[0]}
+                                {errors.voornaam[0]}
                             </p>
                         )}
                     </div>
@@ -117,7 +121,7 @@ export default function Edit() {
                         <input
                             type="email"
                             name="email"
-                            value={user.email}
+                            value={user.email || ""}
                             onChange={handleChange}
                             className="mt-1 w-full border rounded p-2"
                         />
@@ -153,7 +157,7 @@ export default function Edit() {
                         <input
                             type="password"
                             name="current_password"
-                            value={passwordData.current_password}
+                            value={passwordData.current_password || ""}
                             onChange={handlePasswordChange}
                             className="mt-1 w-full border rounded p-2"
                             required
@@ -172,7 +176,7 @@ export default function Edit() {
                         <input
                             type="password"
                             name="password"
-                            value={passwordData.password}
+                            value={passwordData.password || ""}
                             onChange={handlePasswordChange}
                             className="mt-1 w-full border rounded p-2"
                             required
@@ -191,7 +195,7 @@ export default function Edit() {
                         <input
                             type="password"
                             name="password_confirmation"
-                            value={passwordData.password_confirmation}
+                            value={passwordData.password_confirmation || ""}
                             onChange={handlePasswordChange}
                             className="mt-1 w-full border rounded p-2"
                             required

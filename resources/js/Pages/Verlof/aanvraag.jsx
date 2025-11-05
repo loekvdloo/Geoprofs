@@ -15,21 +15,9 @@ export default function Verlofaanvraag({ auth }) {
     const [saldo, setSaldo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const token = localStorage.getItem("token");
 
-    // ✅ Axios basisinstellingen met token
-    const api = axios.create({
-        baseURL: "http://127.0.0.1:8000/api",
-    });
-
-    api.interceptors.request.use((config) => {
-        const token = localStorage.getItem("token");
-        if (token) config.headers.Authorization = `Bearer ${token}`;
-        return config;
-    });
-
-    // ✅ Controleer loginstatus bij laden
     useEffect(() => {
-        const token = localStorage.getItem("token");
         if (!token) {
             setError("Geen geldige login gevonden — je wordt doorgestuurd...");
             setTimeout(() => router.visit("/login"), 1500);
@@ -38,14 +26,19 @@ export default function Verlofaanvraag({ auth }) {
         fetchData();
     }, []);
 
-    // 🔹 Data ophalen
     const fetchData = async () => {
         try {
             setLoading(true);
             const [typesRes, aanvragenRes, saldoRes] = await Promise.all([
-                api.get("/verlof/types"),
-                api.get("/verlof/mijn-aanvragen"),
-                api.get("/verlof/saldo"),
+                axios.get("/api/verlof/types", {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+                axios.get("/api/verlof/mijn-aanvragen", {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
+                axios.get("/api/verlof/saldo", {
+                    headers: { Authorization: `Bearer ${token}` },
+                }),
             ]);
             setTypes(typesRes.data);
             setMijnAanvragen(aanvragenRes.data);
@@ -53,7 +46,7 @@ export default function Verlofaanvraag({ auth }) {
         } catch (err) {
             console.error(err);
             if (err.response?.status === 401) {
-                setError("Je sessie is verlopen. Log opnieuw in.");
+                setError("Je sessie is verlopen. Log opnieuw in."   );
                 localStorage.removeItem("token");
                 setTimeout(() => router.visit("/login"), 1500);
             } else {
@@ -68,30 +61,25 @@ export default function Verlofaanvraag({ auth }) {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
-    // 🔹 Aanvraag indienen
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        if (!token) {
+            setError("Geen geldig token gevonden. Log opnieuw in.");
+            return;
+        }
+
         try {
-            await api.post("/verlof/aanvragen", form);
-            setForm({
-                verlof_type_id: "",
-                start_datum: "",
-                eind_datum: "",
-                reden: "",
+            await axios.post("/api/verlof/aanvragen", form, {
+                headers: { Authorization: `Bearer ${token}` },
             });
-            const aanvragenRes = await api.get("/verlof/mijn-aanvragen");
-            setMijnAanvragen(aanvragenRes.data);
+            await fetchData(); // herlaad aanvragen
         } catch (err) {
             console.error(err);
-            setError(
-                err.response?.status === 401
-                    ? "Je bent niet ingelogd. Log opnieuw in."
-                    : "Kon aanvraag niet indienen."
-            );
+            setError("Kon aanvraag niet indienen.");
         }
     };
-
     return (
         <AuthenticatedLayout user={auth.user}>
             <Head title="Verlofaanvraag" />
