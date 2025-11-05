@@ -41,4 +41,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+    public function aanvragen()
+{
+    return $this->hasMany(Verlofaanvraag::class, 'medewerker_id');
+}
 }

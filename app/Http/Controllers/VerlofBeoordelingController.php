@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Verlofaanvraag;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VerlofStatusMail;
+use Illuminate\Http\Request;
 
 /**
  * @OA\Tag(
@@ -19,12 +20,7 @@ class VerlofBeoordelingController extends Controller
      *     path="/verlof/beoordeling",
      *     summary="Alle verlofaanvragen ophalen voor beoordeling",
      *     tags={"Verlof"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Lijst van aanvragen"
-     *     ),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     security={{"bearerAuth":{}}}
      * )
      */
     public function index()
@@ -33,8 +29,7 @@ class VerlofBeoordelingController extends Controller
             ->orderByDesc('aanvraag_datum')
             ->get();
 
-            return response()->json($aanvragen);
-
+        return response()->json($aanvragen);
     }
 
     /**
@@ -42,25 +37,36 @@ class VerlofBeoordelingController extends Controller
      *     path="/verlof/beoordeling/{aanvraag}/accept",
      *     summary="Accepteer een verlofaanvraag",
      *     tags={"Verlof"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="aanvraag",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Succesvol geaccepteerd"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     security={{"bearerAuth":{}}}
      * )
      */
     public function accept(Verlofaanvraag $aanvraag)
     {
+        if ($aanvraag->status !== 'pending') {
+            return response()->json(['message' => 'Deze aanvraag is al beoordeeld.'], 400);
+        }
+
+        $medewerker = $aanvraag->medewerker;
+
+        // ✅ Bereken aantal dagen tussen start en eind (inclusief startdag)
+        $start = new \DateTime($aanvraag->start_datum);
+        $eind = new \DateTime($aanvraag->eind_datum);
+        $dagen = $eind->diff($start)->days + 1;
+
+        // ✅ Verlaag verlofsaldo
+        $medewerker->verlofsaldo = max(0, $medewerker->verlofsaldo - $dagen);
+        $medewerker->save();
+
+        // ✅ Update status naar accepted
         $aanvraag->update(['status' => 'accepted']);
 
-        Mail::to($aanvraag->medewerker->email)
-            ->send(new VerlofStatusMail($aanvraag, 'accepted'));
+        // ✅ Verstuur bevestiging via mail
+        Mail::to($medewerker->email)->send(new VerlofStatusMail($aanvraag, 'accepted'));
 
-        return response()->json(['message' => 'Verlofaanvraag geaccepteerd']);
+        return response()->json([
+            'message' => 'Verlofaanvraag geaccepteerd en saldo aangepast.',
+            'nieuwe_saldo' => $medewerker->verlofsaldo,
+        ]);
     }
 
     /**
@@ -68,58 +74,29 @@ class VerlofBeoordelingController extends Controller
      *     path="/verlof/beoordeling/{aanvraag}/reject",
      *     summary="Verlofaanvraag afwijzen",
      *     tags={"Verlof"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(
-     *         name="aanvraag",
-     *         in="path",
-     *         required=true,
-     *         description="ID van de verlofaanvraag",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(response=200, description="Verlofaanvraag afgewezen"),
-     *     @OA\Response(response=401, description="Unauthorized")
+     *     security={{"bearerAuth":{}}}
      * )
      */
     public function reject(Verlofaanvraag $aanvraag)
     {
+        if ($aanvraag->status !== 'pending') {
+            return response()->json(['message' => 'Deze aanvraag is al beoordeeld.'], 400);
+        }
+
         $aanvraag->update(['status' => 'rejected']);
 
         Mail::to($aanvraag->medewerker->email)
             ->send(new VerlofStatusMail($aanvraag, 'rejected'));
 
-        return response()->json(['message' => 'Verlofaanvraag afgewezen']);
-
+        return response()->json(['message' => 'Verlofaanvraag afgewezen.']);
     }
+
     /**
      * @OA\Get(
      *     path="/mijn-aanvragen",
      *     summary="Haal de verlofaanvragen van de ingelogde medewerker op",
      *     tags={"Verlof"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Lijst van verlofaanvragen succesvol opgehaald",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(
-     *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="medewerker_id", type="integer", example=42),
-     *                 @OA\Property(
-     *                     property="type",
-     *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=2),
-     *                     @OA\Property(property="naam", type="string", example="Ziekteverlof")
-     *                 ),
-     *                 @OA\Property(property="aanvraag_datum", type="string", format="date", example="2025-11-04"),
-     *                 @OA\Property(property="start_datum", type="string", format="date", example="2025-11-10"),
-     *                 @OA\Property(property="eind_datum", type="string", format="date", example="2025-11-12"),
-     *                 @OA\Property(property="status", type="string", example="In afwachting")
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(response=401, description="Niet geautoriseerd"),
-     *     @OA\Response(response=500, description="Serverfout")
+     *     security={{"bearerAuth":{}}}
      * )
      */
     public function mijnAanvragen()

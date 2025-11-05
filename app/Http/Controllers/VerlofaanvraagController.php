@@ -6,7 +6,6 @@ use App\Http\Requests\StoreVerlofaanvraagRequest;
 use App\Models\Verlofaanvraag;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\VerlofAanvraagMail;
-use App\Models\Verloftype;
 
 /**
  * @OA\Tag(
@@ -21,28 +20,15 @@ class VerlofaanvraagController extends Controller
      *     path="/verlof/aanvragen",
      *     summary="Verlof aanvragen indienen",
      *     tags={"Verlof"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"verlof_type_id","start_datum","eind_datum","reden"},
-     *             @OA\Property(property="verlof_type_id", type="integer"),
-     *             @OA\Property(property="start_datum", type="string", format="date"),
-     *             @OA\Property(property="eind_datum", type="string", format="date"),
-     *             @OA\Property(property="reden", type="string")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Verlofaanvraag succesvol ingediend"
-     *     ),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     security={{"bearerAuth":{}}}
      * )
      */
     public function store(StoreVerlofaanvraagRequest $request)
     {
+        $user = $request->user();
+
         $aanvraag = Verlofaanvraag::create([
-            'medewerker_id' => $request->user()->id,
+            'medewerker_id' => $user->id,
             'verlof_type_id' => $request->verlof_type_id,
             'start_datum' => $request->start_datum,
             'eind_datum' => $request->eind_datum,
@@ -51,9 +37,12 @@ class VerlofaanvraagController extends Controller
             'status' => 'pending',
         ]);
 
-        // Stuur e-mail naar de ingelogde gebruiker
-        Mail::to($request->user()->email)->send(new VerlofAanvraagMail($aanvraag));
+        // Mail naar de aanvrager
+        Mail::to($user->email)->send(new VerlofAanvraagMail($aanvraag));
 
-        return response()->json(['message' => 'Verlofaanvraag ingediend']);
+        return response()->json([
+            'message' => 'Verlofaanvraag succesvol ingediend.',
+            'aanvraag' => $aanvraag,
+        ]);
     }
 }

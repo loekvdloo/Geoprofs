@@ -12,24 +12,31 @@ export default function Verlofaanvraag({ auth }) {
     });
     const [types, setTypes] = useState([]);
     const [mijnAanvragen, setMijnAanvragen] = useState([]);
+    const [saldo, setSaldo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    // 🔹 Data ophalen: types, aanvragen & verlofsaldo
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
                 const token = localStorage.getItem("token");
-                const [typesRes, aanvragenRes] = await Promise.all([
+                const [typesRes, aanvragenRes, saldoRes] = await Promise.all([
                     axios.get("/api/verlof/types", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                     axios.get("/api/verlof/mijn-aanvragen", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
+                    axios.get("/api/verlof/saldo", {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }),
                 ]);
+
                 setTypes(typesRes.data);
                 setMijnAanvragen(aanvragenRes.data);
+                setSaldo(saldoRes.data.verlofsaldo);
             } catch (err) {
                 console.error(err);
                 setError(
@@ -46,6 +53,7 @@ export default function Verlofaanvraag({ auth }) {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
+    // 🔹 Aanvraag indienen (saldo blijft gelijk!)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
@@ -55,6 +63,7 @@ export default function Verlofaanvraag({ auth }) {
                 headers: { Authorization: `Bearer ${token}` },
             });
 
+            // Formulier resetten
             setForm({
                 verlof_type_id: "",
                 start_datum: "",
@@ -62,10 +71,11 @@ export default function Verlofaanvraag({ auth }) {
                 reden: "",
             });
 
-            const res = await axios.get("/api/verlof/mijn-aanvragen", {
+            // Alleen aanvragen vernieuwen (saldo pas bij acceptatie!)
+            const aanvragenRes = await axios.get("/api/verlof/mijn-aanvragen", {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            setMijnAanvragen(res.data);
+            setMijnAanvragen(aanvragenRes.data);
         } catch (err) {
             console.error(err);
             setError("Kon aanvraag niet indienen.");
@@ -77,14 +87,33 @@ export default function Verlofaanvraag({ auth }) {
             <Head title="Verlofaanvraag" />
 
             <div className="max-w-5xl mx-auto p-6 space-y-8">
-                {/* ERROR */}
+                {/* 🔹 VERLOFSALDO BLOK */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between shadow-sm">
+                    <div>
+                        <h2 className="text-lg font-semibold text-blue-800">
+                            Jouw verlofsaldo
+                        </h2>
+                        <p className="text-blue-600">
+                            Je hebt nog{" "}
+                            <span className="font-bold text-blue-900">
+                                {saldo !== null ? `${saldo} dagen` : "laden..."}
+                            </span>{" "}
+                            verlof over.
+                        </p>
+                    </div>
+                    <div className="text-4xl font-bold text-blue-700">
+                        {saldo !== null ? saldo : "…"}
+                    </div>
+                </div>
+
+                {/* 🔹 ERROR */}
                 {error && (
                     <p className="text-red-500 text-center font-medium mb-4">
                         {error}
                     </p>
                 )}
 
-                {/* FORMULIER */}
+                {/* 🔹 FORMULIER */}
                 <div>
                     <h1 className="text-2xl font-semibold mb-4">
                         Nieuwe verlofaanvraag
@@ -181,13 +210,13 @@ export default function Verlofaanvraag({ auth }) {
                     </form>
                 </div>
 
-                {/* TABEL MIJN AANVRAGEN */}
+                {/* 🔹 TABEL MIJN AANVRAGEN */}
                 <div>
                     <h2 className="text-2xl font-semibold mb-4">
                         Mijn verlofaanvragen
                     </h2>
                     {loading ? (
-                        <p>Loading...</p>
+                        <p>Laden...</p>
                     ) : mijnAanvragen.length === 0 ? (
                         <p className="text-gray-600 mt-4 text-center">
                             Je hebt nog geen verlofaanvragen ingediend.
