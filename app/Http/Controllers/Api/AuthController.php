@@ -42,25 +42,51 @@ class AuthController extends Controller
     /**
      * @OA\Post(
      *     path="/register",
-     *     summary="Register a new user",
+     *     summary="Registreer een nieuwe gebruiker",
      *     tags={"Auth"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name","email","password","password_confirmation"},
-     *             @OA\Property(property="name", type="string", example="loek"),
-     *             @OA\Property(property="email", type="string", example="loek@loek.nl"),
-     *             @OA\Property(property="password", type="string", example="12345678"),
-     *             @OA\Property(property="password_confirmation", type="string", example="12345678")
+     *             required={
+     *                 "voornaam",
+     *                 "achternaam",
+     *                 "email",
+     *                 "password",
+     *                 "password_confirmation",
+     *                 "manager",
+     *                 "blocked",
+     *                 "account_status"
+     *             },
+     *             @OA\Property(property="voornaam", type="string", example="Loek"),
+     *             @OA\Property(property="achternaam", type="string", example="Test"),
+     *             @OA\Property(property="email", type="string", format="email", example="loek@loek.nl"),
+     *             @OA\Property(property="password", type="string", format="password", example="12345678"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="12345678"),
+     *             @OA\Property(property="manager", type="boolean", example=false),
+     *             @OA\Property(property="blocked", type="boolean", example=false),
+     *             @OA\Property(property="account_status", type="boolean", example=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="User registered successfully",
+     *         description="Gebruiker succesvol geregistreerd",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="User registered successfully"),
-     *             @OA\Property(property="access_token", type="string"),
+     *             @OA\Property(property="user", type="object",
+     *                 @OA\Property(property="user_id", type="integer", example=1),
+     *                 @OA\Property(property="voornaam", type="string", example="Loek"),
+     *                 @OA\Property(property="achternaam", type="string", example="Test"),
+     *                 @OA\Property(property="email", type="string", example="loek@loek.nl")
+     *             ),
+     *             @OA\Property(property="access_token", type="string", example="1|sometokenvalue"),
      *             @OA\Property(property="token_type", type="string", example="Bearer")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Validatiefout (bijvoorbeeld ontbrekende velden of ongeldig e-mailadres)",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="The email field is required.")
      *         )
      *     )
      * )
