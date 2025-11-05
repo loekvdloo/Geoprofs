@@ -6,36 +6,19 @@ use App\Http\Controllers\VerlofBeoordelingController;
 use App\Models\Verloftype;
 use Illuminate\Support\Facades\Route;
 
-// Login - registreren via API
 Route::post('/register', [ApiAuth::class, 'register']);
-Route::post('/login',    [ApiAuth::class, 'apiLogin']);
+Route::post('/login', [ApiAuth::class, 'apiLogin']);
 
-// Alleen beschermd via Bearer-token
 Route::middleware('auth:sanctum')->group(function () {
-
-    // Logout en user info
-    Route::get('/user',    [ApiAuth::class, 'user']);
+    Route::get('/user', [ApiAuth::class, 'user']);
     Route::post('/logout', [ApiAuth::class, 'logout']);
 
-    // Verlof types ophalen
-    Route::get(
-        'verlof/types',
-        fn() =>
-        Verloftype::orderBy('naam')->get(['verlof_type_id', 'naam', 'betaald'])
-    );
-
-    // Verlof aanvragen indienen
+    Route::get('verlof/types', fn() => Verloftype::orderBy('naam')->get(['verlof_type_id', 'naam', 'betaald']));
     Route::post('verlof/aanvragen', [VerlofaanvraagController::class, 'store']);
     Route::get('verlof/mijn-aanvragen', [VerlofBeoordelingController::class, 'mijnAanvragen']);
-
-    // Verlof aanvragen ophalen voor beoordeling
     Route::get('verlof/beoordeling', [VerlofBeoordelingController::class, 'index']);
-
-    // Verlof aanvragen beoordelen
     Route::post('verlof/beoordeling/{aanvraag}/accept', [VerlofBeoordelingController::class, 'accept']);
     Route::post('verlof/beoordeling/{aanvraag}/reject', [VerlofBeoordelingController::class, 'reject']);
-
-    Route::get('user', [AuthController::class, 'user']);
-    Route::put('user', [AuthController::class, 'updateUser']);
-    Route::put('user/password', [AuthController::class, 'updatePassword']);
+    Route::put('user', [ApiAuth::class, 'updateUser']);
+    Route::put('user/password', [ApiAuth::class, 'updatePassword']);
 });

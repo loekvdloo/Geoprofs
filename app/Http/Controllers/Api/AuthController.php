@@ -94,36 +94,37 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $v = Validator::make($request->all(), [
-            'voornaam'       => 'required|string|max:255',
-            'achternaam'     => 'required|string|max:255',
-            'email'          => 'required|email|max:255|unique:users,email',
-            'password'       => 'required|string|min:6|confirmed',
+            'voornaam' => 'required|string|max:255',
+            'achternaam' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'password' => 'required|string|min:6|confirmed',
             'telefoonnummer' => 'nullable|string|max:50',
-            'afdeling_id'    => 'nullable|integer',
-            'role_id'        => 'nullable|integer',
+            'afdeling_id' => 'nullable|integer',
+            'role_id' => 'nullable|integer',
             'account_status' => 'sometimes|boolean',
         ]);
-        if ($v->fails()) return response()->json(['errors' => $v->errors()], 422);
+        if ($v->fails())
+            return response()->json(['errors' => $v->errors()], 422);
 
         $data = $v->validated();
 
         $user = User::create([
-            'voornaam'       => $data['voornaam'],
-            'achternaam'     => $data['achternaam'],
-            'email'          => $data['email'],
-            'password'       => $data['password'],
+            'voornaam' => $data['voornaam'],
+            'achternaam' => $data['achternaam'],
+            'email' => $data['email'],
+            'password' => $data['password'],
             'telefoonnummer' => $data['telefoonnummer'] ?? null,
-            'afdeling_id'    => $data['afdeling_id'] ?? null,
-            'role_id'        => $data['role_id'] ?? null,
+            'afdeling_id' => $data['afdeling_id'] ?? null,
+            'role_id' => $data['role_id'] ?? null,
             'account_status' => $data['account_status'] ?? true,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message'      => 'User registered successfully',
+            'message' => 'User registered successfully',
             'access_token' => $token,
-            'token_type'   => 'Bearer',
+            'token_type' => 'Bearer',
         ], 201);
     }
 
@@ -155,23 +156,23 @@ class AuthController extends Controller
     public function apiLogin(Request $request)
     {
         $request->validate([
-            'email'    => ['required','email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (! $user) {
+        if (!$user) {
             $this->loginService->recordAttempt(null, $request->ip(), false, 'unknown_email');
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
-        if (! $user->account_status) {
+        if (!$user->account_status) {
             $this->loginService->recordAttempt($user, $request->ip(), false, 'blocked_account');
             return response()->json(['message' => 'Account is geblokkeerd.'], 403);
         }
 
-        if (! Hash::check($request->password, $user->password)) {
+        if (!Hash::check($request->password, $user->password)) {
             $this->loginService->recordAttempt($user, $request->ip(), false, 'wrong_password');
 
             if ($this->loginService->checkAndBlockIfNeeded($user, $request->ip())) {
@@ -186,7 +187,7 @@ class AuthController extends Controller
 
         return response()->json([
             'access_token' => $token,
-            'token_type'   => 'Bearer',
+            'token_type' => 'Bearer',
         ]);
     }
 
@@ -243,14 +244,14 @@ class AuthController extends Controller
     /**
      * @OA\Put(
      *     path="/user",
-     *     summary="Update user profile (name and email)",
+     *     summary="Update user profile (voornaam en email)",
      *     tags={"Profile"},
      *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name","email"},
-     *             @OA\Property(property="name", type="string", example="Nieuwe Naam"),
+     *             required={"voornaam","email"},
+     *             @OA\Property(property="voornaam", type="string", example="Nieuwe Voornaam"),
      *             @OA\Property(property="email", type="string", example="nieuweemail@voorbeeld.nl")
      *         )
      *     ),
@@ -260,14 +261,13 @@ class AuthController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Profiel succesvol bijgewerkt."),
      *             @OA\Property(property="user", type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="name", type="string", example="Nieuwe Naam"),
+     *                 @OA\Property(property="user_id", type="integer", example=1),
+     *                 @OA\Property(property="voornaam", type="string", example="Nieuwe Voornaam"),
+     *                 @OA\Property(property="achternaam", type="string", example="Test"),
      *                 @OA\Property(property="email", type="string", example="nieuweemail@voorbeeld.nl")
      *             )
      *         )
-     *     ),
-     *     @OA\Response(response=422, description="Validation error"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     )
      * )
      */
     public function updateUser(Request $request)
@@ -275,8 +275,8 @@ class AuthController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'voornaam' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->user_id . ',user_id',
         ]);
 
         $user->update($validated);
@@ -309,7 +309,13 @@ class AuthController extends Controller
      *             @OA\Property(property="message", type="string", example="Wachtwoord succesvol gewijzigd.")
      *         )
      *     ),
-     *     @OA\Response(response=422, description="Invalid or mismatched passwords"),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Invalid or mismatched passwords",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Huidig wachtwoord is onjuist.")
+     *         )
+     *     ),
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
      */
@@ -322,7 +328,7 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (! Hash::check($validated['current_password'], $user->password)) {
+        if (!Hash::check($validated['current_password'], $user->password)) {
             return response()->json([
                 'message' => 'Huidig wachtwoord is onjuist.'
             ], 422);

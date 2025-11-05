@@ -14,12 +14,17 @@ export default function Verlofaanvraag({ auth }) {
     const [mijnAanvragen, setMijnAanvragen] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const token = localStorage.getItem("token");
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+            if (!token) {
+                setError("Geen geldig token gevonden. Log opnieuw in.");
+                setLoading(false);
+                return;
+            }
             try {
-                const token = localStorage.getItem("token");
                 const [typesRes, aanvragenRes] = await Promise.all([
                     axios.get("/api/verlof/types", {
                         headers: { Authorization: `Bearer ${token}` },
@@ -28,6 +33,7 @@ export default function Verlofaanvraag({ auth }) {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
                 ]);
+
                 setTypes(typesRes.data);
                 setMijnAanvragen(aanvragenRes.data);
             } catch (err) {
@@ -40,7 +46,7 @@ export default function Verlofaanvraag({ auth }) {
             }
         };
         fetchData();
-    }, []);
+    }, [token]);
 
     const handleChange = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
@@ -49,11 +55,20 @@ export default function Verlofaanvraag({ auth }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        if (!token) {
+            setError("Geen geldig token gevonden. Log opnieuw in.");
+            return;
+        }
+
         try {
-            const token = localStorage.getItem("token");
-            await axios.post("/api/verlof/aanvragen", form, {
+            await axios.get("/sanctum/csrf-cookie", { withCredentials: true });
+
+            const res = await axios.post("/api/verlof/aanvragen", form, {
                 headers: { Authorization: `Bearer ${token}` },
+                withCredentials: true, // Zorg dat cookies meegestuurd worden
             });
+            setMijnAanvragen((prev) => [...prev, res.data.aanvraag]);
 
             setForm({
                 verlof_type_id: "",
@@ -61,30 +76,27 @@ export default function Verlofaanvraag({ auth }) {
                 eind_datum: "",
                 reden: "",
             });
-
-            const res = await axios.get("/api/verlof/mijn-aanvragen", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            setMijnAanvragen(res.data);
         } catch (err) {
-            console.error(err);
-            setError("Kon aanvraag niet indienen.");
+            console.error("Aanvraag fout:", err.response || err);
+            if (err.response && err.response.status === 401) {
+                setError("Niet geauthenticeerd. Log opnieuw in.");
+            } else if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else {
+                setError("Kon aanvraag niet indienen.");
+            }
         }
     };
-
     return (
         <AuthenticatedLayout user={auth.user}>
             <Head title="Verlofaanvraag" />
 
             <div className="max-w-5xl mx-auto p-6 space-y-8">
-                {/* ERROR */}
                 {error && (
                     <p className="text-red-500 text-center font-medium mb-4">
                         {error}
                     </p>
                 )}
-
-                {/* FORMULIER */}
                 <div>
                     <h1 className="text-2xl font-semibold mb-4">
                         Nieuwe verlofaanvraag
@@ -181,7 +193,6 @@ export default function Verlofaanvraag({ auth }) {
                     </form>
                 </div>
 
-                {/* TABEL MIJN AANVRAGEN */}
                 <div>
                     <h2 className="text-2xl font-semibold mb-4">
                         Mijn verlofaanvragen

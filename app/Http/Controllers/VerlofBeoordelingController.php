@@ -18,13 +18,40 @@ class VerlofBeoordelingController extends Controller
      * @OA\Get(
      *     path="/verlof/beoordeling",
      *     summary="Alle verlofaanvragen ophalen voor beoordeling",
-     *     tags={"Verlof"},
+     *     tags={"VerlofBeoordeling"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
-     *         description="Lijst van aanvragen"
+     *         description="Lijst van verlofaanvragen",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(
+     *                 type="object",
+     *                 @OA\Property(property="aanvraag_id", type="integer", example=1),
+     *                 @OA\Property(property="user_id", type="integer", example=42),
+     *                 @OA\Property(
+     *                     property="medewerker",
+     *                     type="object",
+     *                     @OA\Property(property="id", type="integer", example=42),
+     *                     @OA\Property(property="voornaam", type="string", example="Loek"),
+     *                     @OA\Property(property="achternaam", type="string", example="Jansen"),
+     *                     @OA\Property(property="email", type="string", example="loek@loek.nl")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="type",
+     *                     type="object",
+     *                     @OA\Property(property="verlof_type_id", type="integer", example=2),
+     *                     @OA\Property(property="naam", type="string", example="Ziekteverlof")
+     *                 ),
+     *                 @OA\Property(property="start_datum", type="string", format="date", example="2025-11-10"),
+     *                 @OA\Property(property="eind_datum", type="string", format="date", example="2025-11-12"),
+     *                 @OA\Property(property="reden", type="string", example="Ziekte"),
+     *                 @OA\Property(property="aanvraag_datum", type="string", format="date-time", example="2025-11-05T15:00:00Z"),
+     *                 @OA\Property(property="status", type="string", example="pending")
+     *             )
+     *         )
      *     ),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\Response(response=401, description="Niet geautoriseerd")
      * )
      */
     public function index()
@@ -33,7 +60,7 @@ class VerlofBeoordelingController extends Controller
             ->orderByDesc('aanvraag_datum')
             ->get();
 
-            return response()->json($aanvragen);
+        return response()->json($aanvragen);
 
     }
 
@@ -41,24 +68,33 @@ class VerlofBeoordelingController extends Controller
      * @OA\Post(
      *     path="/verlof/beoordeling/{aanvraag}/accept",
      *     summary="Accepteer een verlofaanvraag",
-     *     tags={"Verlof"},
+     *     tags={"VerlofBeoordeling"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="aanvraag",
      *         in="path",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="integer", example=1)
      *     ),
-     *     @OA\Response(response=200, description="Succesvol geaccepteerd"),
-     *     @OA\Response(response=401, description="Unauthenticated")
+     *     @OA\Response(
+     *         response=200,
+     *         description="Verlofaanvraag geaccepteerd",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Verlofaanvraag geaccepteerd")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Niet geautoriseerd")
      * )
      */
     public function accept(Verlofaanvraag $aanvraag)
     {
         $aanvraag->update(['status' => 'accepted']);
 
-        Mail::to($aanvraag->medewerker->email)
-            ->send(new VerlofStatusMail($aanvraag, 'accepted'));
+        if ($aanvraag->medewerker && $aanvraag->medewerker->email) {
+            Mail::to($aanvraag->medewerker->email)
+                ->send(new VerlofStatusMail($aanvraag, 'accepted'));
+        }
 
         return response()->json(['message' => 'Verlofaanvraag geaccepteerd']);
     }
@@ -67,34 +103,43 @@ class VerlofBeoordelingController extends Controller
      * @OA\Post(
      *     path="/verlof/beoordeling/{aanvraag}/reject",
      *     summary="Verlofaanvraag afwijzen",
-     *     tags={"Verlof"},
+     *     tags={"VerlofBeoordeling"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="aanvraag",
      *         in="path",
      *         required=true,
      *         description="ID van de verlofaanvraag",
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="integer", example=1)
      *     ),
-     *     @OA\Response(response=200, description="Verlofaanvraag afgewezen"),
-     *     @OA\Response(response=401, description="Unauthorized")
+     *     @OA\Response(
+     *         response=200,
+     *         description="Verlofaanvraag afgewezen",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Verlofaanvraag afgewezen")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Niet geautoriseerd")
      * )
      */
     public function reject(Verlofaanvraag $aanvraag)
     {
         $aanvraag->update(['status' => 'rejected']);
 
-        Mail::to($aanvraag->medewerker->email)
-            ->send(new VerlofStatusMail($aanvraag, 'rejected'));
+        if ($aanvraag->medewerker && $aanvraag->medewerker->email) {
+            Mail::to($aanvraag->medewerker->email)
+                ->send(new VerlofStatusMail($aanvraag, 'rejected'));
+        }
 
         return response()->json(['message' => 'Verlofaanvraag afgewezen']);
 
     }
     /**
      * @OA\Get(
-     *     path="/mijn-aanvragen",
+     *     path="/verlof/mijn-aanvragen",
      *     summary="Haal de verlofaanvragen van de ingelogde medewerker op",
-     *     tags={"Verlof"},
+     *     tags={"VerlofBeoordeling"},
      *     security={{"bearerAuth":{}}},
      *     @OA\Response(
      *         response=200,
@@ -103,18 +148,19 @@ class VerlofBeoordelingController extends Controller
      *             type="array",
      *             @OA\Items(
      *                 type="object",
-     *                 @OA\Property(property="id", type="integer", example=1),
-     *                 @OA\Property(property="medewerker_id", type="integer", example=42),
+     *                 @OA\Property(property="aanvraag_id", type="integer", example=1),
+     *                 @OA\Property(property="user_id", type="integer", example=42),
      *                 @OA\Property(
      *                     property="type",
      *                     type="object",
-     *                     @OA\Property(property="id", type="integer", example=2),
+     *                     @OA\Property(property="verlof_type_id", type="integer", example=2),
      *                     @OA\Property(property="naam", type="string", example="Ziekteverlof")
      *                 ),
-     *                 @OA\Property(property="aanvraag_datum", type="string", format="date", example="2025-11-04"),
      *                 @OA\Property(property="start_datum", type="string", format="date", example="2025-11-10"),
      *                 @OA\Property(property="eind_datum", type="string", format="date", example="2025-11-12"),
-     *                 @OA\Property(property="status", type="string", example="In afwachting")
+     *                 @OA\Property(property="reden", type="string", example="Ziekte"),
+     *                 @OA\Property(property="aanvraag_datum", type="string", format="date-time", example="2025-11-05T15:00:00Z"),
+     *                 @OA\Property(property="status", type="string", example="pending")
      *             )
      *         )
      *     ),
@@ -125,7 +171,7 @@ class VerlofBeoordelingController extends Controller
     public function mijnAanvragen()
     {
         $aanvragen = Verlofaanvraag::with('type')
-            ->where('medewerker_id', auth()->id())
+            ->where('user_id', auth()->id())
             ->orderByDesc('aanvraag_datum')
             ->get();
 
