@@ -174,7 +174,7 @@ class AuthController extends Controller
         if (! Hash::check($request->password, $user->password)) {
             $this->loginService->recordAttempt($user, $request->ip(), false, 'wrong_password');
 
-            if ($this->loginService->blockIfNeeded($user, $request->ip())) {
+            if ($this->loginService->checkAndBlockIfNeeded($user, $request->ip())) {
                 return response()->json(['message' => 'Account is geblokkeerd.'], 403);
             }
 
@@ -322,13 +322,13 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
         ]);
 
-        if (!\Hash::check($validated['current_password'], $user->password)) {
+        if (! Hash::check($validated['current_password'], $user->password)) {
             return response()->json([
                 'message' => 'Huidig wachtwoord is onjuist.'
             ], 422);
         }
 
-        $user->password = \Hash::make($validated['password']);
+        $user->password = Hash::make($validated['password']);
         $user->save();
 
         return response()->json([
