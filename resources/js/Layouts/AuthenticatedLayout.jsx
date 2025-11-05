@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useForm, usePage } from "@inertiajs/react";
+import { useForm, usePage } from "@inertiajs/react";
 
 export default function AuthenticatedLayout({ children }) {
     const { auth } = usePage().props;
@@ -38,11 +38,13 @@ export default function AuthenticatedLayout({ children }) {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <a href="/profile/edit" className="hover:underline">
-                            {userName}
-                        <a href="/profile" className="hover:underline">
                             {userName || "Profiel"}
                         </a>
-                        <button onClick={handleLogout} className="hover:underline" disabled={processing}>
+                        <button
+                            onClick={handleLogout}
+                            className="hover:underline"
+                            disabled={processing}
+                        >
                             Logout
                         </button>
                     </div>
