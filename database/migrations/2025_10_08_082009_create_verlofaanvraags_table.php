@@ -15,7 +15,10 @@ return new class extends Migration
             $table->id('aanvraag_id');
 
 
-            $table->foreignId('medewerker_id')->constrained('users')->cascadeOnDelete();
+            $table->unsignedBigInteger('user_id');
+            $table->foreign('user_id')
+                ->references('user_id')->on('users')
+                ->cascadeOnDelete();
 
             $table->unsignedBigInteger('verlof_type_id');
             $table->foreign('verlof_type_id')

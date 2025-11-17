@@ -1,53 +1,56 @@
-import React, { useEffect, useState } from "react";
-import { router } from "@inertiajs/react";
-import axios from "axios"; // axios komt met interceptor
+import { useEffect, useState } from "react";
+import { useForm, usePage } from "@inertiajs/react";
 
-const AuthenticatedLayout = ({ children }) => {
+export default function AuthenticatedLayout({ children }) {
+    const { auth } = usePage().props;
+    const { post, processing } = useForm({});
     const [loading, setLoading] = useState(true);
+    const [userName, setUserName] = useState("");
 
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            router.visit("/login");
-            return;
-        }
+        const name =
+            auth?.user?.name ??
+            [auth?.user?.voornaam, auth?.user?.achternaam].filter(Boolean).join(" ") ??
+            "";
+        setUserName(name);
+        setLoading(false);
+    }, [auth]);
 
-        // check of token geldig is
-        axios
-            .get("/api/user")
-            .then(() => setLoading(false))
-            .catch(() => {
-                localStorage.removeItem("token");
-                router.visit("/login");
-            });
-    }, []);
-
-    const handleLogout = async (e) => {
+    const handleLogout = (e) => {
         e.preventDefault();
-        try {
-            await axios.post("/api/logout"); // token wordt automatisch meegestuurd
-            localStorage.removeItem("token");
-            router.visit("/login");
-        } catch (error) {
-            console.error("Logout failed:", error);
-        }
+        post(route("logout"));
     };
 
-    if (loading) return <div>Laden...</div>;
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-screen bg-[#F3F4F6]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#0E3A5B]" />
+            </div>
+        );
+    }
 
     return (
-        <div>
-            <header className="bg-gray-800 text-white p-4 flex justify-between items-center">
-                <h1 className="text-lg font-bold">Geoprofs</h1>
-                <nav>
-                    <button onClick={handleLogout} className="hover:underline">
-                        Logout
-                    </button>
-                </nav>
+        <div className="min-h-screen bg-[#F3F4F6]">
+            <header className="bg-[#0E3A5B] text-white p-4 flex justify-between items-center shadow">
+                <a href="/dashboard">
+                    <h1 className="text-xl font-bold">GeoProfs</h1>
+                </a>
+                <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <a href="/profile/edit" className="hover:underline">
+                            {userName || "Profiel"}
+                        </a>
+                        <button
+                            onClick={handleLogout}
+                            className="hover:underline"
+                            disabled={processing}
+                        >
+                            Logout
+                        </button>
+                    </div>
+                </div>
             </header>
             <main className="p-6">{children}</main>
         </div>
     );
-};
-
-export default AuthenticatedLayout;
+}

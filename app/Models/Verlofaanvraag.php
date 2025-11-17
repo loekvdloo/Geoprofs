@@ -9,7 +9,7 @@ class Verlofaanvraag extends Model {
     
     protected $primaryKey = 'aanvraag_id';
     public $timestamps = false;
-    protected $fillable = ['medewerker_id','verlof_type_id','start_datum','eind_datum','reden','aanvraag_datum','status'];
+    protected $fillable = ['user_id','verlof_type_id','start_datum','eind_datum','reden','aanvraag_datum','status'];
     protected $casts = ['start_datum'=>'date','eind_datum'=>'date','aanvraag_datum'=>'datetime'];
     public function type()
     {
@@ -18,6 +18,6 @@ class Verlofaanvraag extends Model {
 
     public function medewerker()
     {
-        return $this->belongsTo(\App\Models\User::class, 'medewerker_id', 'id');
+        return $this->belongsTo(\App\Models\User::class, 'user_id', 'user_id');
     }
 }
