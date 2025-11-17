@@ -11,7 +11,9 @@ use Inertia\Inertia;
 
 class LoginController extends Controller
 {
-    public function __construct(private LoginAttemptService $loginService) {}
+    public function __construct(private LoginAttemptService $loginService)
+    {
+    }
 
     /**
      * Toon loginpagina (Inertia).
@@ -30,51 +32,42 @@ class LoginController extends Controller
     public function store(Request $request)
     {
         $cred = $request->validate([
-            'email'    => ['required', 'email'],
+            'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
 
-        $ip   = $request->ip();
+        $ip = $request->ip();
         $user = User::where('email', $cred['email'])->first();
 
-        // Onbekend e-mailadres → poging loggen zonder user_id + generieke fout
+        // User bestaat niet
         if (!$user) {
-            $this->loginService->recordAttempt(null, $ip, false, 'unknown_email');
-            return back()
-                ->withErrors(['email' => 'Onjuiste inloggegevens.'])
-                ->onlyInput('email');
+            $this->loginService->recordAttempt(null, $ip, false, 'bad_credentials');
+
+            return back()->withErrors([
+                'email' => 'Onjuiste inloggegevens.',
+            ])->onlyInput('email');
         }
 
-        // Account al inactief/gebokkeerd → weigeren + loggen
-        if ($this->isUserBlocked($user)) {
-            $this->loginService->recordAttempt($user, $ip, false, 'blocked_account');
-            return back()
-                ->withErrors(['email' => 'Account is geblokkeerd.'])
-                ->onlyInput('email');
+        if ($user->account_status === false) {
+            return back()->withErrors([
+                'email' => 'Je account is geblokkeerd.',
+            ])->onlyInput('email');
         }
 
-        // Proberen in te loggen
+        // Wachtwoord fout
         if (!Auth::attempt($cred, $request->boolean('remember'))) {
-            // Mislukte poging loggen
-            $this->loginService->recordAttempt($user, $ip, false, 'bad_credentials');
+            $this->loginService->recordAttempt($user, $ip, false, 'wrong_password');
 
-            // Na 3 mislukte pogingen → automatisch blokkeren (account_status = false)
-            if ($this->loginService->checkAndBlockIfNeeded($user, $ip)) {
-                return back()
-                    ->withErrors(['email' => 'Account is automatisch geblokkeerd na 3 mislukte pogingen.'])
-                    ->onlyInput('email');
-            }
-
-            return back()
-                ->withErrors(['email' => 'Onjuiste inloggegevens.'])
-                ->onlyInput('email');
+            return back()->withErrors([
+                'email' => 'Onjuiste inloggegevens.',
+            ])->onlyInput('email');
         }
 
-        // Gelukt: sessie vernieuwen + geslaagde poging loggen
-        $request->session()->regenerate();
+        // Succesvolle login
         $this->loginService->recordAttempt($user, $ip, true, null);
+        $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended('/dashboard');
     }
 
     /**

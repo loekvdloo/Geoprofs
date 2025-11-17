@@ -173,12 +173,11 @@ class AuthController extends Controller
         }
 
         if (!Hash::check($request->password, $user->password)) {
+            // 1 mislukte poging loggen
             $this->loginService->recordAttempt($user, $request->ip(), false, 'wrong_password');
 
-            if ($this->loginService->checkAndBlockIfNeeded($user, $request->ip())) {
-                return response()->json(['message' => 'Account is geblokkeerd.'], 403);
-            }
-
+            // GEEN extra checkForBlock() hier!
+            // recordAttempt() roept intern zelf checkForBlock() aan
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
