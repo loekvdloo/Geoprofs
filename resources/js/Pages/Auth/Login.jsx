@@ -12,24 +12,18 @@ export default function Login() {
 
     const [generalError, setGeneralError] = useState("");
 
-    const handleSubmit = async (e) => {
+    //Per klik bij login werdt de blokkade logica 2x geregistreerd.
+    //dit pagina had een slechte structuur voor de blokkade functie
+    //daarom dit aanpassing.
+
+    const handleSubmit = (e) => {
         e.preventDefault();
         setGeneralError("");
 
-        try {
-            const response = await axios.post("/api/login", {
-                email: data.email,
-                password: data.password,
-            });
-
-            localStorage.setItem("token", response.data.access_token);
-
-            router.visit("/dashboard");
-        } catch (error) {
-            setGeneralError("Inloggen mislukt. Controleer je gegevens.");
-        }
-
         post("/login", {
+            onError: () => {
+                setGeneralError("Inloggen mislukt. Controleer je gegevens.");
+            },
             onFinish: () => reset("password"),
             onSuccess: () => router.visit("/dashboard"),
         });

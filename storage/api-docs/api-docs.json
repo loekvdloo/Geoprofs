@@ -29,23 +29,21 @@
                                     "email",
                                     "password",
                                     "password_confirmation",
-                                    "manager",
-                                    "blocked",
                                     "account_status"
                                 ],
                                 "properties": {
                                     "voornaam": {
                                         "type": "string",
-                                        "example": "Loek"
+                                        "example": "Medewerker"
                                     },
                                     "achternaam": {
                                         "type": "string",
-                                        "example": "Test"
+                                        "example": "Demo"
                                     },
                                     "email": {
                                         "type": "string",
                                         "format": "email",
-                                        "example": "loek@loek.nl"
+                                        "example": "medewerker2@geoprofs.nl"
                                     },
                                     "password": {
                                         "type": "string",
@@ -56,14 +54,6 @@
                                         "type": "string",
                                         "format": "password",
                                         "example": "12345678"
-                                    },
-                                    "manager": {
-                                        "type": "boolean",
-                                        "example": false
-                                    },
-                                    "blocked": {
-                                        "type": "boolean",
-                                        "example": false
                                     },
                                     "account_status": {
                                         "type": "boolean",
@@ -77,65 +67,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Gebruiker succesvol geregistreerd",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "User registered successfully"
-                                        },
-                                        "user": {
-                                            "properties": {
-                                                "user_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "voornaam": {
-                                                    "type": "string",
-                                                    "example": "Loek"
-                                                },
-                                                "achternaam": {
-                                                    "type": "string",
-                                                    "example": "Test"
-                                                },
-                                                "email": {
-                                                    "type": "string",
-                                                    "example": "loek@loek.nl"
-                                                }
-                                            },
-                                            "type": "object"
-                                        },
-                                        "access_token": {
-                                            "type": "string",
-                                            "example": "1|sometokenvalue"
-                                        },
-                                        "token_type": {
-                                            "type": "string",
-                                            "example": "Bearer"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validatiefout (bijvoorbeeld ontbrekende velden of ongeldig e-mailadres)",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "The email field is required."
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Gebruiker succesvol geregistreerd"
                     }
                 }
             }
@@ -159,7 +91,7 @@
                                 "properties": {
                                     "email": {
                                         "type": "string",
-                                        "example": "loek@loek.nl"
+                                        "example": "medewerker@geoprofs.nl"
                                     },
                                     "password": {
                                         "type": "string",
@@ -713,7 +645,6 @@
                     "Verlofaanvraag"
                 ],
                 "summary": "Dien een verlofaanvraag in",
-                "description": "Verlof aanvragen indienen",
                 "operationId": "c9f1a461123e0194f58934cb37f0dfc8",
                 "requestBody": {
                     "required": true,

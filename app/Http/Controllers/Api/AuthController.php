@@ -29,7 +29,6 @@ use Inertia\Inertia;
  *     bearerFormat="JWT"
  * )
  */
-
 class AuthController extends Controller
 {
     protected $loginService;
@@ -53,41 +52,19 @@ class AuthController extends Controller
      *                 "email",
      *                 "password",
      *                 "password_confirmation",
-     *                 "manager",
-     *                 "blocked",
      *                 "account_status"
      *             },
-     *             @OA\Property(property="voornaam", type="string", example="Loek"),
-     *             @OA\Property(property="achternaam", type="string", example="Test"),
-     *             @OA\Property(property="email", type="string", format="email", example="loek@loek.nl"),
+     *             @OA\Property(property="voornaam", type="string", example="Medewerker"),
+     *             @OA\Property(property="achternaam", type="string", example="Demo"),
+     *             @OA\Property(property="email", type="string", format="email", example="medewerker2@geoprofs.nl"),
      *             @OA\Property(property="password", type="string", format="password", example="12345678"),
      *             @OA\Property(property="password_confirmation", type="string", format="password", example="12345678"),
-     *             @OA\Property(property="manager", type="boolean", example=false),
-     *             @OA\Property(property="blocked", type="boolean", example=false),
      *             @OA\Property(property="account_status", type="boolean", example=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="Gebruiker succesvol geregistreerd",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="User registered successfully"),
-     *             @OA\Property(property="user", type="object",
-     *                 @OA\Property(property="user_id", type="integer", example=1),
-     *                 @OA\Property(property="voornaam", type="string", example="Loek"),
-     *                 @OA\Property(property="achternaam", type="string", example="Test"),
-     *                 @OA\Property(property="email", type="string", example="loek@loek.nl")
-     *             ),
-     *             @OA\Property(property="access_token", type="string", example="1|sometokenvalue"),
-     *             @OA\Property(property="token_type", type="string", example="Bearer")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validatiefout (bijvoorbeeld ontbrekende velden of ongeldig e-mailadres)",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="The email field is required.")
-     *         )
+     *         description="Gebruiker succesvol geregistreerd"
      *     )
      * )
      */
@@ -137,7 +114,7 @@ class AuthController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="loek@loek.nl"),
+     *             @OA\Property(property="email", type="string", example="medewerker@geoprofs.nl"),
      *             @OA\Property(property="password", type="string", example="12345678")
      *         )
      *     ),
@@ -163,21 +140,42 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
-            $this->loginService->recordAttempt(null, $request->ip(), false, 'unknown_email');
+            $this->loginService->recordAttempt(
+                null,
+                $request->ip(),
+                false,
+                LoginAttemptService::reasonUnknownEmail()
+            );
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
-        if (!$user->account_status) {
-            $this->loginService->recordAttempt($user, $request->ip(), false, 'blocked_account');
+// zelfde block-check als web:
+        if ($this->loginService->isUserBlocked($user)) {
+            $this->loginService->recordAttempt(
+                $user,
+                $request->ip(),
+                false,
+                LoginAttemptService::reasonBlockedAccount()
+            );
             return response()->json(['message' => 'Account is geblokkeerd.'], 403);
         }
 
         if (!Hash::check($request->password, $user->password)) {
-            // 1 mislukte poging loggen
-            $this->loginService->recordAttempt($user, $request->ip(), false, 'wrong_password');
+            // 1 mislukte poging loggen met ZELFDE reason als web:
+            $this->loginService->recordAttempt(
+                $user,
+                $request->ip(),
+                false,
+                LoginAttemptService::reasonBadCredentials()
+            );
 
-            // GEEN extra checkForBlock() hier!
-            // recordAttempt() roept intern zelf checkForBlock() aan
+            // zelfde auto-block logic als web:
+            if ($this->loginService->checkAndBlockIfNeeded($user, $request->ip())) {
+                return response()->json([
+                    'message' => 'Account is automatisch geblokkeerd na 3 mislukte pogingen.'
+                ], 403);
+            }
+
             return response()->json(['message' => 'Invalid login details'], 401);
         }
 
