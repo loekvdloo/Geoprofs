@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { router } from "@inertiajs/react";
-import { useForm } from "@inertiajs/react";
+import { router, useForm } from "@inertiajs/react";
 
 export default function Login() {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -12,10 +11,6 @@ export default function Login() {
 
     const [generalError, setGeneralError] = useState("");
 
-    //Per klik bij login werdt de blokkade logica 2x geregistreerd.
-    //dit pagina had een slechte structuur voor de blokkade functie
-    //daarom dit aanpassing.
-
     const handleSubmit = (e) => {
         e.preventDefault();
         setGeneralError("");
@@ -24,49 +19,67 @@ export default function Login() {
             onError: () => {
                 setGeneralError("Inloggen mislukt. Controleer je gegevens.");
             },
-            onFinish: () => reset("password"),
-            onSuccess: () => router.visit("/dashboard"),
+            onSuccess: async () => {
+                // Web-login is hier al gelukt (sessie staat).
+                // Nu 1x API-login doen om een token te krijgen voor de React API-calls.
+                try {
+                    const response = await axios.post("/api/login", {
+                        email: data.email,
+                        password: data.password,
+                    });
+
+                    localStorage.setItem("token", response.data.access_token);
+                } catch (error) {
+                    console.error("API login voor token faalde:", error);
+                    // desnoods hier een melding tonen, maar de sessie-login blijft geldig
+                }
+
+                reset("password");
+                router.visit("/dashboard");
+            },
         });
     };
 
     return (
         <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
             <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6">
-                <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+                <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
 
                 {generalError && (
-                    <p className="text-red-500 text-sm mb-4 text-center">
+                    <div className="mb-4 text-red-600 text-center">
                         {generalError}
-                    </p>
-                )}
-
-                {(errors.email || errors.password) && (
-                    <p className="text-red-500 text-sm mb-4 text-center">
-                        {errors.email || errors.password}
-                    </p>
+                    </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="email"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             E-mail
                         </label>
                         <input
+                            id="email"
                             type="email"
                             value={data.email}
                             onChange={(e) => setData("email", e.target.value)}
                             name="email"
                             className="mt-1 w-full border rounded-md p-2"
-                            autoComplete="username"
+                            autoComplete="email"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label
+                            htmlFor="password"
+                            className="block text-sm font-medium text-gray-700"
+                        >
                             Wachtwoord
                         </label>
                         <input
+                            id="password"
                             type="password"
                             value={data.password}
                             onChange={(e) =>
