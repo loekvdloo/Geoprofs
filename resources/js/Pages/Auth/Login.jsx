@@ -16,12 +16,15 @@ export default function Login() {
         setGeneralError("");
 
         post("/login", {
-            onError: () => {
-                setGeneralError("Inloggen mislukt. Controleer je gegevens.");
+            onError: (errors) => {
+                // Als de backend een specifieke email-fout heeft, laat die zien
+                if (errors.email) {
+                    setGeneralError(errors.email);
+                } else {
+                    setGeneralError("Inloggen mislukt. Controleer je gegevens.");
+                }
             },
             onSuccess: async () => {
-                // Web-login is hier al gelukt (sessie staat).
-                // Nu 1x API-login doen om een token te krijgen voor de React API-calls.
                 try {
                     const response = await axios.post("/api/login", {
                         email: data.email,
@@ -31,7 +34,6 @@ export default function Login() {
                     localStorage.setItem("token", response.data.access_token);
                 } catch (error) {
                     console.error("API login voor token faalde:", error);
-                    // desnoods hier een melding tonen, maar de sessie-login blijft geldig
                 }
 
                 reset("password");

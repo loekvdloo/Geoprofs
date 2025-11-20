@@ -109,7 +109,6 @@ class LoginAttemptService
         // account_status === false = account inactief / geblokkeerd
         return $user->account_status === false;
     }
-
     /**
      * Extra helper om reason-strings op één plek te houden.
      */
