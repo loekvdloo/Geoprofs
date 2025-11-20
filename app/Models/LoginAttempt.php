@@ -17,6 +17,10 @@ class LoginAttempt extends Model
         'failure_reason',
     ];
 
+    protected $casts = [
+        'succes' => 'boolean',
+        'attempt_time' => 'datetime',
+    ];
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');

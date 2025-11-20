@@ -6,6 +6,7 @@ export default function AuthenticatedLayout({ children }) {
     const { post, processing } = useForm({});
     const [loading, setLoading] = useState(true);
     const [userName, setUserName] = useState("");
+    const isAdmin = auth?.user && Number(auth.user.role_id) === 1;
 
     useEffect(() => {
         const name =
@@ -35,6 +36,17 @@ export default function AuthenticatedLayout({ children }) {
                 <a href="/dashboard">
                     <h1 className="text-xl font-bold">GeoProfs</h1>
                 </a>
+
+                <nav className="space-x-4 text-sm">
+                    <a href="/verlof" className="hover:underline">
+                        Verlof
+                    </a>
+                    {isAdmin && (
+                        <a href="/records" className="hover:underline">
+                            Records
+                        </a>
+                    )}
+                </nav>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <a href="/profile/edit" className="hover:underline">

@@ -66,12 +66,17 @@ class User extends Authenticatable
      */
     protected $casts = [
         'account_status' => 'boolean',
-        'blocked'        => 'boolean',
+        'blocked' => 'boolean',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
     public function aanvragen()
-{
-    return $this->hasMany(Verlofaanvraag::class, 'medewerker_id');
-}
+    {
+        return $this->hasMany(Verlofaanvraag::class, 'medewerker_id');
+    }
+    public function isAdmin(): bool
+    {
+        // Voor dit project: role_id 1 = Admin (RoleSeeder)
+        return (int)$this->role_id === 1;
+    }
 }

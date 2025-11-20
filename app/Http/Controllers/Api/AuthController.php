@@ -180,6 +180,7 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+        $this->loginService->recordAttempt($user, $request->ip(), true, null);
 
         return response()->json([
             'access_token' => $token,

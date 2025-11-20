@@ -109,6 +109,12 @@ class LoginController extends Controller
         // - sessie regenereren
         // - geslaagde poging loggen
         $request->session()->regenerate();
+        $this->loginService->recordAttempt(
+            $user,
+            $ip,
+            true,
+            null // reason is null bij succes
+        );
 
         // 7. Doorsturen naar intended pagina of dashboard
         return redirect()->intended(route('dashboard'));

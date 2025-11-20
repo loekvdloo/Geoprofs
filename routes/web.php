@@ -8,7 +8,18 @@ use Inertia\Inertia;
 Route::middleware('auth')->group(function () {
     Route::get('/', fn () => Inertia::render('Dashboard'))->name('home');
     Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
+    Route::get('/verlof', fn () => Inertia::render('Verlof/Index'))->name('verlof.index');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('/records', function () {
+        $user = auth()->user();
+
+        if (!$user || (int) $user->role_id !== 1) {
+            abort(403);
+        }
+
+        return Inertia::render('Admin/LoginAttempts');
+    })->name('records.index');
 });
 
 // Alleen voor gasten

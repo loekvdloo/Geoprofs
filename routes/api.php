@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VerlofaanvraagController;
 use App\Http\Controllers\VerlofBeoordelingController;
+use App\Http\Controllers\Admin\LoginAttemptAdminController;
 use App\Models\Verloftype;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -27,4 +28,6 @@ Route::middleware('auth:sanctum')->group(function () {
             'verlofsaldo' => $request->user()->verlofsaldo,
         ]);
     });
+
+    Route::get('admin/login-attempts', [LoginAttemptAdminController::class, 'index']);
 });
