@@ -15,7 +15,8 @@ class AuthControllerTest extends TestCase
     public function test_register()
     {
         $response = $this->postJson('/api/register', [
-            'name' => 'Loek Test',
+            'voornaam' => 'Loek',
+            'achternaam' => 'Test',
             'email' => 'loek@test.nl',
             'password' => 'password123',
             'password_confirmation' => 'password123',
@@ -54,17 +55,21 @@ class AuthControllerTest extends TestCase
     {
         $user = User::factory()->create();
 
+
         $token = $user->createToken('auth_token')->plainTextToken;
+
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
         ])->getJson('/api/user');
 
+
         $response->assertStatus(200)
             ->assertJson([
-                'id' => $user->id,
+                'user_id' => $user->user_id,
                 'email' => $user->email,
-                'name' => $user->name,
+                'voornaam' => $user->voornaam,
+                'achternaam' => $user->achternaam,
             ]);
     }
     public function test_logout()
@@ -81,7 +86,7 @@ class AuthControllerTest extends TestCase
                 'message' => 'Logged out successfully',
             ]);
 
-        $this->assertCount(0, $user->tokens); 
+        $this->assertCount(0, $user->tokens);
     }
 
 }
