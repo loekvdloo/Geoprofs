@@ -21,13 +21,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('verlof/beoordeling', [VerlofBeoordelingController::class, 'index']);
     Route::post('verlof/beoordeling/{aanvraag}/accept', [VerlofBeoordelingController::class, 'accept']);
     Route::post('verlof/beoordeling/{aanvraag}/reject', [VerlofBeoordelingController::class, 'reject']);
+
     Route::put('user', [AuthController::class, 'updateUser']);
     Route::put('user/password', [AuthController::class, 'updatePassword']);
+
     Route::get('verlof/saldo', function (Request $request) {
         return response()->json([
             'verlofsaldo' => $request->user()->verlofsaldo,
         ]);
     });
+
+    Route::post('verlof/bulk-accept', [VerlofBeoordelingController::class, 'bulkAccept']);
+    Route::post('verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
 
     Route::get('admin/login-attempts', [LoginAttemptAdminController::class, 'index']);
 });

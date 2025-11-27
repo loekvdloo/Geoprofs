@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Verlofaanvraag extends Model {
     protected $table = 'verlofaanvraag';
+    
     protected $primaryKey = 'aanvraag_id';
     public $timestamps = false;
     protected $fillable = ['user_id','verlof_type_id','start_datum','eind_datum','reden','aanvraag_datum','status'];

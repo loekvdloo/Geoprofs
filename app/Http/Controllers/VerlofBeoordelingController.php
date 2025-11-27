@@ -62,7 +62,6 @@ class VerlofBeoordelingController extends Controller
             ->get();
 
         return response()->json($aanvragen);
-
     }
 
     /**
@@ -96,20 +95,17 @@ class VerlofBeoordelingController extends Controller
 
         $medewerker = $aanvraag->medewerker;
 
-        // ✅ Bereken aantal dagen tussen start en eind (inclusief startdag)
         $start = new \DateTime($aanvraag->start_datum);
         $eind = new \DateTime($aanvraag->eind_datum);
         $dagen = $eind->diff($start)->days + 1;
 
-        // ✅ Verlaag verlofsaldo
         $medewerker->verlofsaldo = max(0, $medewerker->verlofsaldo - $dagen);
         $medewerker->save();
 
-        // ✅ Update status naar accepted
         $aanvraag->update(['status' => 'accepted']);
 
-        if ($aanvraag->medewerker && $aanvraag->medewerker->email) {
-            Mail::to($aanvraag->medewerker->email)
+        if ($medewerker && $medewerker->email) {
+            Mail::to($medewerker->email)
                 ->send(new VerlofStatusMail($aanvraag, 'accepted'));
         }
 
@@ -200,5 +196,76 @@ class VerlofBeoordelingController extends Controller
             ->get();
 
         return response()->json($aanvragen);
+    }
+
+    // ===================== BULK ACTIES ===================== //
+
+    /**
+     * Bulk accepteren van verlofaanvragen
+     */
+    public function bulkAccept(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:verlofaanvraag,aanvraag_id',
+        ]);
+
+        $aanvragen = Verlofaanvraag::with('medewerker')
+            ->whereIn('aanvraag_id', $request->ids)
+            ->where('status', 'pending')
+            ->get();
+
+        foreach ($aanvragen as $aanvraag) {
+            $medewerker = $aanvraag->medewerker;
+
+            if ($medewerker) {
+                $start = new \DateTime($aanvraag->start_datum);
+                $eind = new \DateTime($aanvraag->eind_datum);
+                $dagen = $eind->diff($start)->days + 1;
+
+                $medewerker->verlofsaldo = max(0, $medewerker->verlofsaldo - $dagen);
+                $medewerker->save();
+
+                $aanvraag->update(['status' => 'accepted']);
+
+                if ($medewerker->email) {
+                    Mail::to($medewerker->email)
+                        ->send(new VerlofStatusMail($aanvraag, 'accepted'));
+                }
+            }
+        }
+
+        return response()->json([
+            'message' => count($aanvragen) . ' aanvragen succesvol geaccepteerd.'
+        ]);
+    }
+
+    /**
+     * Bulk weigeren van verlofaanvragen
+     */
+    public function bulkReject(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:verlofaanvraag,aanvraag_id',
+        ]);
+
+        $aanvragen = Verlofaanvraag::with('medewerker')
+            ->whereIn('aanvraag_id', $request->ids)
+            ->where('status', 'pending')
+            ->get();
+
+        foreach ($aanvragen as $aanvraag) {
+            $aanvraag->update(['status' => 'rejected']);
+
+            if ($aanvraag->medewerker && $aanvraag->medewerker->email) {
+                Mail::to($aanvraag->medewerker->email)
+                    ->send(new VerlofStatusMail($aanvraag, 'rejected'));
+            }
+        }
+
+        return response()->json([
+            'message' => count($aanvragen) . ' aanvragen succesvol geweigerd.'
+        ]);
     }
 }

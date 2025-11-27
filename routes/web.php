@@ -37,5 +37,9 @@ Route::get('/verlof/aanvraag', fn() => Inertia::render('Verlof/aanvraag'))
 Route::get('/verlof/beoordeling', fn() => Inertia::render('Verlof/beoordeling'))
     ->name('verlof.beoordeling');
 
+    Route::middleware('auth')->group(function () {
+    Route::post('/verlof/bulk-accept', [VerlofBeoordelingController::class, 'bulkAccept']);
+    Route::post('/verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
+    });
 Route::get('/profile/edit', fn() => Inertia::render('Profile/Edit'))
     ->name('profile.edit');

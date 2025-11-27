@@ -15,6 +15,21 @@ class VerlofTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
+       public function check_of_pagina_laad()
+    {
+
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->get('/verlof/beoordeling');
+
+        $response->assertStatus(200);
+
+        $response->assertInertia(
+            fn(\Inertia\Testing\AssertableInertia $page) =>
+            $page->component('Verlof/aanvraag')
+        );
+    }
+    /** @test */
     public function verlof_test_route_returns_verloftypes()
     {
         // Create verloftypes manually
@@ -24,12 +39,13 @@ class VerlofTest extends TestCase
 
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->get('/verlof/test');
+        $response = $this->actingAs($user)->get('/verlof/aanvragen');
 
         $response->assertStatus(200)
-                 ->assertInertia(fn (Assert $page) =>
-                     $page->has('types', 3)
-                 );
+            ->assertInertia(
+                fn(Assert $page) =>
+                $page->has('types', 3)
+            );
     }
 
     /** @test */
@@ -43,16 +59,16 @@ class VerlofTest extends TestCase
         ]);
 
         $payload = [
-            'verlof_type_id' => $verloftype->id, // gebruik id, niet verlof_type_id
+            'verlof_type_id' => $verloftype->id,
             'start_datum' => '2025-10-10',
             'eind_datum' => '2025-10-12',
             'reden' => 'Vakantie',
         ];
 
         $response = $this->actingAs($user)
-                         ->post('/verlof/aanvragen', $payload);
+            ->post('/verlof/aanvragen', $payload);
 
-        // Verwacht redirect (kan aangepast worden naar jouw redirect)
+        // Verwacht redirect 
         $response->assertStatus(302);
 
         // Controleer database — gebruik juiste tabelnaam
@@ -63,4 +79,7 @@ class VerlofTest extends TestCase
             'status' => 'pending',
         ]);
     }
+    
+ 
+
 }

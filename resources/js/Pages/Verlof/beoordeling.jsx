@@ -10,6 +10,7 @@ export default function Beoordeling() {
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState("");
+    const [selected, setSelected] = useState([]); // Nieuw!
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -47,7 +48,7 @@ export default function Beoordeling() {
             try {
                 const token = localStorage.getItem("token");
 
-                const [typesRes, aanvragenRes] = await Promise.all([
+                const [, aanvragenRes] = await Promise.all([
                     axios.get("/api/verlof/types", {
                         headers: { Authorization: `Bearer ${token}` },
                     }),
@@ -68,6 +69,25 @@ export default function Beoordeling() {
         fetchData();
     }, [user]);
 
+    // Checkbox toggle
+    const toggleSelect = (id) => {
+        setSelected((prev) =>
+            prev.includes(id)
+                ? prev.filter((x) => x !== id)
+                : [...prev, id]
+        );
+    };
+
+    // Selecteer alles
+    const toggleSelectAll = () => {
+        if (selected.length === aanvragen.length) {
+            setSelected([]);
+        } else {
+            setSelected(aanvragen.map((a) => a.aanvraag_id));
+        }
+    };
+
+    // Accept één aanvraag
     const handleAccept = async (id) => {
         setProcessing(true);
         const token = localStorage.getItem("token");
@@ -90,6 +110,7 @@ export default function Beoordeling() {
         }
     };
 
+    // Reject één aanvraag
     const handleReject = async (id) => {
         setProcessing(true);
         const token = localStorage.getItem("token");
@@ -107,6 +128,68 @@ export default function Beoordeling() {
         } catch (err) {
             console.error(err);
             setError("Kon aanvraag niet weigeren.");
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    // BULK accept
+    const handleBulkAccept = async () => {
+        if (selected.length === 0) return;
+
+        setProcessing(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            await axios.post(
+                `/api/verlof/bulk-accept`,
+                { ids: selected },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setAanvragen((prev) =>
+                prev.map((a) =>
+                    selected.includes(a.aanvraag_id)
+                        ? { ...a, status: "accepted" }
+                        : a
+                )
+            );
+
+            setSelected([]);
+        } catch (err) {
+            console.error(err);
+            setError("Kon bulk acceptatie niet uitvoeren.");
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    // BULK reject
+    const handleBulkReject = async () => {
+        if (selected.length === 0) return;
+
+        setProcessing(true);
+        const token = localStorage.getItem("token");
+
+        try {
+            await axios.post(
+                `/api/verlof/bulk-reject`,
+                { ids: selected },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            setAanvragen((prev) =>
+                prev.map((a) =>
+                    selected.includes(a.aanvraag_id)
+                        ? { ...a, status: "rejected" }
+                        : a
+                )
+            );
+
+            setSelected([]);
+        } catch (err) {
+            console.error(err);
+            setError("Kon bulk weigering niet uitvoeren.");
         } finally {
             setProcessing(false);
         }
@@ -133,73 +216,118 @@ export default function Beoordeling() {
                         Geen verlofaanvragen gevonden.
                     </p>
                 ) : (
-                    <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
-                        <thead className="bg-gray-100">
-                            <tr>
-                                <th className="text-left p-3">Medewerker</th>
-                                <th className="text-left p-3">Type</th>
-                                <th className="text-left p-3">Periode</th>
-                                <th className="text-left p-3">Reden</th>
-                                <th className="text-left p-3">Status</th>
-                                <th className="p-3 text-center">Actie</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {aanvragen.map((a) => (
-                                <tr key={a.aanvraag_id} className="border-t">
-                                    <td className="p-3">
-                                        {a.medewerker?.voornaam}
-                                    </td>
-                                    <td className="p-3">{a.type?.naam}</td>
-                                    <td className="p-3">
-                                        {a.start_datum} - {a.eind_datum}
-                                    </td>
-                                    <td className="p-3">{a.reden}</td>
-                                    <td className="p-3">
-                                        <span
-                                            className={`px-2 py-1 rounded text-sm ${
-                                                a.status === "pending"
-                                                    ? "bg-yellow-200 text-yellow-800"
-                                                    : a.status === "accepted"
-                                                    ? "bg-green-200 text-green-800"
-                                                    : "bg-red-200 text-red-800"
-                                            }`}
-                                        >
-                                            {a.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-3 text-center space-x-2">
-                                        {a.status === "pending" && (
-                                            <>
-                                                <button
-                                                    onClick={() =>
-                                                        handleAccept(
-                                                            a.aanvraag_id
-                                                        )
-                                                    }
-                                                    disabled={processing}
-                                                    className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                                                >
-                                                    ✅ Accepteer
-                                                </button>
-                                                <button
-                                                    onClick={() =>
-                                                        handleReject(
-                                                            a.aanvraag_id
-                                                        )
-                                                    }
-                                                    disabled={processing}
-                                                    className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                                                >
-                                                    ❌ Weiger
-                                                </button>
-                                            </>
-                                        )}
-                                    </td>
+                    <>
+                        <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="p-3 text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={
+                                                selected.length ===
+                                                aanvragen.length
+                                            }
+                                            onChange={toggleSelectAll}
+                                        />
+                                    </th>
+                                    <th className="text-left p-3">Medewerker</th>
+                                    <th className="text-left p-3">Type</th>
+                                    <th className="text-left p-3">Periode</th>
+                                    <th className="text-left p-3">Reden</th>
+                                    <th className="text-left p-3">Status</th>
+                                    <th className="p-3 text-center">Actie</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {aanvragen.map((a) => (
+                                    <tr key={a.aanvraag_id} className="border-t">
+                                        <td className="p-3 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selected.includes(
+                                                    a.aanvraag_id
+                                                )}
+                                                onChange={() =>
+                                                    toggleSelect(a.aanvraag_id)
+                                                }
+                                            />
+                                        </td>
+                                        <td className="p-3">
+                                            {a.medewerker?.voornaam}
+                                        </td>
+                                        <td className="p-3">{a.type?.naam}</td>
+                                        <td className="p-3">
+                                            {a.start_datum} - {a.eind_datum}
+                                        </td>
+                                        <td className="p-3">{a.reden}</td>
+                                        <td className="p-3">
+                                            <span
+                                                className={`px-2 py-1 rounded text-sm ${
+                                                    a.status === "pending"
+                                                        ? "bg-yellow-200 text-yellow-800"
+                                                        : a.status ===
+                                                          "accepted"
+                                                        ? "bg-green-200 text-green-800"
+                                                        : "bg-red-200 text-red-800"
+                                                }`}
+                                            >
+                                                {a.status}
+                                            </span>
+                                        </td>
+                                        <td className="p-3 text-center space-x-2">
+                                            {a.status === "pending" && (
+                                                <>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleAccept(
+                                                                a.aanvraag_id
+                                                            )
+                                                        }
+                                                        disabled={processing}
+                                                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                                                    >
+                                                        ✅ Accepteer
+                                                    </button>
+                                                    <button
+                                                        onClick={() =>
+                                                            handleReject(
+                                                                a.aanvraag_id
+                                                            )
+                                                        }
+                                                        disabled={processing}
+                                                        className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                                                    >
+                                                        ❌ Weiger
+                                                    </button>
+                                                </>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {/* BULK ACTIE KNOPPEN */}
+                        {selected.length > 0 && (
+                            <div className="mt-5 text-center space-x-3">
+                                <button
+                                    onClick={handleBulkAccept}
+                                    disabled={processing}
+                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                                >
+                                    ✔ {selected.length} geselecteerde accepteren
+                                </button>
+
+                                <button
+                                    onClick={handleBulkReject}
+                                    disabled={processing}
+                                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                                >
+                                    ❌ {selected.length} geselecteerde weigeren
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </AuthenticatedLayout>
