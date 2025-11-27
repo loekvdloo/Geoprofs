@@ -1,0 +1,787 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Geoprofs API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api",
+            "description": "Local API Server"
+        }
+    ],
+    "paths": {
+        "/register": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Registreer een nieuwe gebruiker",
+                "operationId": "5d4fa5d5607ed675ba93907e1fc94534",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "voornaam",
+                                    "achternaam",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "account_status"
+                                ],
+                                "properties": {
+                                    "voornaam": {
+                                        "type": "string",
+                                        "example": "Medewerker"
+                                    },
+                                    "achternaam": {
+                                        "type": "string",
+                                        "example": "Demo"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "medewerker2@geoprofs.nl"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "12345678"
+                                    },
+                                    "account_status": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Gebruiker succesvol geregistreerd"
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login user",
+                "operationId": "151b6b910a176daba44f16a008fb7b69",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "medewerker@geoprofs.nl"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Login successful"
+                                        },
+                                        "access_token": {
+                                            "type": "string"
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        "/user": {
+            "get": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Get authenticated user",
+                "operationId": "2baab1eeb5fd49516237a38da22e7a07",
+                "responses": {
+                    "200": {
+                        "description": "Authenticated user data",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "loek"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "loek@loek.nl"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update user profile (voornaam en email)",
+                "operationId": "5c4370b04de069d196077b185063eb82",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "voornaam",
+                                    "email"
+                                ],
+                                "properties": {
+                                    "voornaam": {
+                                        "type": "string",
+                                        "example": "Nieuwe Voornaam"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "nieuweemail@voorbeeld.nl"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Profiel succesvol bijgewerkt."
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "voornaam": {
+                                                    "type": "string",
+                                                    "example": "Nieuwe Voornaam"
+                                                },
+                                                "achternaam": {
+                                                    "type": "string",
+                                                    "example": "Test"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "nieuweemail@voorbeeld.nl"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout the current user (invalidate token)",
+                "operationId": "28d48c13fca984400ac8de99f54ee13a",
+                "responses": {
+                    "200": {
+                        "description": "Logged out successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logged out successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/user/password": {
+            "put": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update user password (requires current password)",
+                "operationId": "e4ff4573a528acae1ea287b21a8531fb",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string",
+                                        "example": "oudeWachtwoord123"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "NieuwWachtwoord123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "NieuwWachtwoord123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Wachtwoord succesvol gewijzigd."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Invalid or mismatched passwords",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Huidig wachtwoord is onjuist."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/verlof/beoordeling": {
+            "get": {
+                "tags": [
+                    "VerlofBeoordeling"
+                ],
+                "summary": "Alle verlofaanvragen ophalen voor beoordeling",
+                "operationId": "3f6bfe5977392d35adc626ebe37d3a5b",
+                "responses": {
+                    "200": {
+                        "description": "Lijst van verlofaanvragen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "aanvraag_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "example": 42
+                                            },
+                                            "medewerker": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 42
+                                                    },
+                                                    "voornaam": {
+                                                        "type": "string",
+                                                        "example": "Loek"
+                                                    },
+                                                    "achternaam": {
+                                                        "type": "string",
+                                                        "example": "Jansen"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "loek@loek.nl"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "type": {
+                                                "properties": {
+                                                    "verlof_type_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "naam": {
+                                                        "type": "string",
+                                                        "example": "Ziekteverlof"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "start_datum": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-11-10"
+                                            },
+                                            "eind_datum": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-11-12"
+                                            },
+                                            "reden": {
+                                                "type": "string",
+                                                "example": "Ziekte"
+                                            },
+                                            "aanvraag_datum": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2025-11-05T15:00:00Z"
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "example": "pending"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/verlof/beoordeling/{aanvraag}/accept": {
+            "post": {
+                "tags": [
+                    "VerlofBeoordeling"
+                ],
+                "summary": "Accepteer een verlofaanvraag",
+                "operationId": "f8ba78118190164e2b5e075c004b0e75",
+                "parameters": [
+                    {
+                        "name": "aanvraag",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verlofaanvraag geaccepteerd",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verlofaanvraag geaccepteerd"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/verlof/beoordeling/{aanvraag}/reject": {
+            "post": {
+                "tags": [
+                    "VerlofBeoordeling"
+                ],
+                "summary": "Verlofaanvraag afwijzen",
+                "operationId": "390513ce98fc74003604f91a2bc4cfc5",
+                "parameters": [
+                    {
+                        "name": "aanvraag",
+                        "in": "path",
+                        "description": "ID van de verlofaanvraag",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Verlofaanvraag afgewezen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verlofaanvraag afgewezen"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/verlof/mijn-aanvragen": {
+            "get": {
+                "tags": [
+                    "VerlofBeoordeling"
+                ],
+                "summary": "Haal de verlofaanvragen van de ingelogde medewerker op",
+                "operationId": "7b3a8febbd536adb5972e33dec42672b",
+                "responses": {
+                    "200": {
+                        "description": "Lijst van verlofaanvragen succesvol opgehaald",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "aanvraag_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "user_id": {
+                                                "type": "integer",
+                                                "example": 42
+                                            },
+                                            "type": {
+                                                "properties": {
+                                                    "verlof_type_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "naam": {
+                                                        "type": "string",
+                                                        "example": "Ziekteverlof"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "start_datum": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-11-10"
+                                            },
+                                            "eind_datum": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "example": "2025-11-12"
+                                            },
+                                            "reden": {
+                                                "type": "string",
+                                                "example": "Ziekte"
+                                            },
+                                            "aanvraag_datum": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2025-11-05T15:00:00Z"
+                                            },
+                                            "status": {
+                                                "type": "string",
+                                                "example": "pending"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    },
+                    "500": {
+                        "description": "Serverfout"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/verlof/aanvragen": {
+            "post": {
+                "tags": [
+                    "Verlofaanvraag"
+                ],
+                "summary": "Dien een verlofaanvraag in",
+                "operationId": "c9f1a461123e0194f58934cb37f0dfc8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "verlof_type_id",
+                                    "start_datum",
+                                    "eind_datum",
+                                    "reden"
+                                ],
+                                "properties": {
+                                    "verlof_type_id": {
+                                        "description": "ID van het verloftype",
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "start_datum": {
+                                        "description": "Startdatum van het verlof",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-10"
+                                    },
+                                    "eind_datum": {
+                                        "description": "Einddatum van het verlof",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-12"
+                                    },
+                                    "reden": {
+                                        "description": "Reden voor het verlof",
+                                        "type": "string",
+                                        "example": "Ziekte"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Verlofaanvraag succesvol ingediend",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "aanvraag": {
+                                            "properties": {
+                                                "aanvraag_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 42
+                                                },
+                                                "verlof_type_id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "start_datum": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2025-11-10"
+                                                },
+                                                "eind_datum": {
+                                                    "type": "string",
+                                                    "format": "date",
+                                                    "example": "2025-11-12"
+                                                },
+                                                "reden": {
+                                                    "type": "string",
+                                                    "example": "Ziekte"
+                                                },
+                                                "aanvraag_datum": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2025-11-05T15:00:00Z"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Verlofaanvraag succesvol ingediend"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Bearer token voor authenticatie",
+                "name": "Authorization",
+                "in": "header",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "VerlofBeoordeling",
+            "description": "API endpoints voor het beoordelen van verlof aanvragen"
+        },
+        {
+            "name": "Verlofaanvraag",
+            "description": "API endpoints voor verlof aanvragen"
+        },
+        {
+            "name": "Auth",
+            "description": "Auth"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile"
+        }
+    ]
+}

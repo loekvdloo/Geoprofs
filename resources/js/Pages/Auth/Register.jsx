@@ -1,120 +1,91 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+// import React, { useState } from "react";
+// import axios from "axios";
+// import { useNavigate } from "react-router-dom";
 
-export default function Register() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    });
+// const Register = () => {
+//     const [name, setName] = useState("");
+//     const [email, setEmail] = useState("");
+//     const [password, setPassword] = useState("");
+//     const [passwordConfirmation, setPasswordConfirmation] = useState("");
+//     const [error, setError] = useState("");
+//     const navigate = useNavigate();
 
-    const submit = (e) => {
-        e.preventDefault();
+//     const handleRegister = async (e) => {
+//         e.preventDefault();
+//         try {
+//             const response = await axios.post("/api/register", {
+//                 name,
+//                 email,
+//                 password,
+//                 password_confirmation: passwordConfirmation,
+//             });
+//             localStorage.setItem("token", response.data.access_token);
+//             navigate("/dashboard"); // redirect naar dashboard
+//         } catch (err) {
+//             setError(
+//                 err.response?.data?.message ||
+//                     JSON.stringify(err.response?.data) ||
+//                     "Registration failed"
+//             );
+//         }
+//     };
 
-        post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
-        });
-    };
+//     return (
+//         <div className="max-w-md mx-auto mt-20 p-6 border rounded shadow">
+//             <h2 className="text-2xl mb-4">Register</h2>
+//             {error && <p className="text-red-500 mb-2">{error}</p>}
+//             <form onSubmit={handleRegister} className="space-y-4">
+//                 <div>
+//                     <label className="block">Name</label>
+//                     <input
+//                         className="w-full border p-2 rounded"
+//                         type="text"
+//                         value={name}
+//                         onChange={(e) => setName(e.target.value)}
+//                         required
+//                     />
+//                 </div>
+//                 <div>
+//                     <label className="block">Email</label>
+//                     <input
+//                         className="w-full border p-2 rounded"
+//                         type="email"
+//                         value={email}
+//                         onChange={(e) => setEmail(e.target.value)}
+//                         required
+//                     />
+//                 </div>
+//                 <div>
+//                     <label className="block">Password</label>
+//                     <input
+//                         className="w-full border p-2 rounded"
+//                         type="password"
+//                         value={password}
+//                         onChange={(e) => setPassword(e.target.value)}
+//                         required
+//                     />
+//                 </div>
+//                 <div>
+//                     <label className="block">Confirm Password</label>
+//                     <input
+//                         className="w-full border p-2 rounded"
+//                         type="password"
+//                         value={passwordConfirmation}
+//                         onChange={(e) =>
+//                             setPasswordConfirmation(e.target.value)
+//                         }
+//                         required
+//                     />
+//                 </div>
+//                 <button
+//                     className="w-full bg-green-500 text-white p-2 rounded"
+//                     type="submit"
+//                 >
+//                     Register
+//                 </button>
+//             </form>
+//         </div>
+//     );
+// };
 
-    return (
-        <GuestLayout>
-            <Head title="Register" />
-
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="name" value="Name" />
-
-                    <TextInput
-                        id="name"
-                        name="name"
-                        value={data.name}
-                        className="mt-1 block w-full"
-                        autoComplete="name"
-                        isFocused={true}
-                        onChange={(e) => setData('name', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.name} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
-                        name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={(e) => setData('email', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) => setData('password', e.target.value)}
-                        required
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel
-                        htmlFor="password_confirmation"
-                        value="Confirm Password"
-                    />
-
-                    <TextInput
-                        id="password_confirmation"
-                        type="password"
-                        name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={(e) =>
-                            setData('password_confirmation', e.target.value)
-                        }
-                        required
-                    />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
-                </div>
-
-                <div className="mt-4 flex items-center justify-end">
-                    <Link
-                        href={route('login')}
-                        className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    >
-                        Already registered?
-                    </Link>
-
-                    <PrimaryButton className="ms-4" disabled={processing}>
-                        Register
-                    </PrimaryButton>
-                </div>
-            </form>
-        </GuestLayout>
-    );
-}
+// export default Register;
