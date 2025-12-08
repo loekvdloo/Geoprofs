@@ -80,3 +80,4 @@ class VerlofaanvraagController extends Controller
         ]);
     }
 }
+    
