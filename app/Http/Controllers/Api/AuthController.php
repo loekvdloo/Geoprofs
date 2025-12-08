@@ -89,7 +89,7 @@ class AuthController extends Controller
             'voornaam' => $data['voornaam'],
             'achternaam' => $data['achternaam'],
             'email' => $data['email'],
-            'password' => $data['password'],
+            'password' => Hash::make($data['password']),
             'telefoonnummer' => $data['telefoonnummer'] ?? null,
             'afdeling_id' => $data['afdeling_id'] ?? null,
             'role_id' => $data['role_id'] ?? null,
