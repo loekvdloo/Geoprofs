@@ -15,7 +15,7 @@ use App\Mail\VerlofAanvraagMail;
  * )
  */
 class VerlofaanvraagController extends Controller
-{   
+{
      /**
      * @OA\Post(
      *     path="/verlof/aanvragen",
