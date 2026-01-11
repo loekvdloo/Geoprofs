@@ -57,11 +57,18 @@ class VerlofBeoordelingController extends Controller
      */
     public function index()
     {
-        $aanvragen = Verlofaanvraag::with(['type', 'medewerker'])
-            ->orderByDesc('aanvraag_datum')
-            ->get();
+        $user = auth()->user();
 
-        return response()->json($aanvragen);
+        $query = Verlofaanvraag::with(['type', 'medewerker'])
+            ->orderByDesc('aanvraag_datum');
+
+        if ((int) $user->role_id === 3) {
+            $query->whereHas('medewerker', function ($q) use ($user) {
+                $q->where('afdeling_id', $user->afdeling_id);
+            });
+        }
+
+        return response()->json($query->get());
     }
 
     /**
