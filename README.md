@@ -31,18 +31,29 @@ Het doel van dit project is het ontwikkelen van een full-stack webapplicatie waa
 
 ## Projectstructuur
 Geoprofs/
+
 ├── app/                # Laravel applicatielogica
+
 ├── resources/
 │   ├── js/             # React frontend (Inertia)
 │   └── views/          # Blade templates
+
 ├── routes/             # Web- en API-routes
+
 ├── database/           # Migrations en database configuratie
+
 ├── public/             # Publieke assets
+
 ├── tests/              # Backend tests
+
 ├── cypress/            # Frontend E2E tests
+
 ├── docker-compose.yml  # Docker configuratie
+
 ├── package.json        # Frontend dependencies
+
 ├── composer.json       # Backend dependencies
+
 └── vite.config.js      # Vite configuratie
 
 ---
