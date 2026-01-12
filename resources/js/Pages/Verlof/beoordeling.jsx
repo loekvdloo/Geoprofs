@@ -67,9 +67,7 @@ export default function Beoordeling() {
     const acceptSingle = async (id) => {
         try {
             setError("");
-            await axios.post("/verlof/bulk-accept", {
-                aanvraag_ids: [id],
-            });
+            await axios.post("/verlof/bulk-accept", { ids: [id] });
             await refresh();
         } catch (e) {
             console.error(e);
@@ -80,9 +78,7 @@ export default function Beoordeling() {
     const rejectSingle = async (id) => {
         try {
             setError("");
-            await axios.post("/verlof/bulk-reject", {
-                aanvraag_ids: [id],
-            });
+            await axios.post("/verlof/bulk-accept", { ids: [id] });
             await refresh();
         } catch (e) {
             console.error(e);
@@ -93,9 +89,7 @@ export default function Beoordeling() {
     const bulkAccept = async () => {
         try {
             setError("");
-            await axios.post("/verlof/bulk-accept", {
-                aanvraag_ids: selected,
-            });
+            await axios.post("/verlof/bulk-reject", { ids: selected });;
             await refresh();
         } catch (e) {
             console.error(e);
@@ -106,9 +100,7 @@ export default function Beoordeling() {
     const bulkReject = async () => {
         try {
             setError("");
-            await axios.post("/verlof/bulk-reject", {
-                aanvraag_ids: selected,
-            });
+            await axios.post("/verlof/bulk-reject", { ids: selected });
             await refresh();
         } catch (e) {
             console.error(e);
@@ -147,7 +139,7 @@ export default function Beoordeling() {
                             <div className="flex gap-2">
                                 <button
                                     type="button"
-                                    className="px-3 py-2 rounded border hover:bg-black/5 disabled:opacity-50"
+                                    className="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
                                     disabled={selected.length === 0}
                                     onClick={bulkAccept}
                                 >
@@ -156,7 +148,7 @@ export default function Beoordeling() {
 
                                 <button
                                     type="button"
-                                    className="px-3 py-2 rounded border hover:bg-black/5 disabled:opacity-50"
+                                    className="px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
                                     disabled={selected.length === 0}
                                     onClick={bulkReject}
                                 >
@@ -266,7 +258,7 @@ export default function Beoordeling() {
                                                 <div className="flex justify-end gap-2">
                                                     <button
                                                         type="button"
-                                                        className="px-2 py-1 text-xs rounded border hover:bg-black/5"
+                                                        className="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700"
                                                         onClick={() => acceptSingle(a.aanvraag_id)}
                                                     >
                                                         Goedkeuren
@@ -274,7 +266,7 @@ export default function Beoordeling() {
 
                                                     <button
                                                         type="button"
-                                                        className="px-2 py-1 text-xs rounded border hover:bg-black/5"
+                                                        className="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700"
                                                         onClick={() => rejectSingle(a.aanvraag_id)}
                                                     >
                                                         Afwijzen

@@ -60,6 +60,7 @@ class VerlofBeoordelingController extends Controller
         $user = auth()->user();
 
         $query = Verlofaanvraag::with(['type', 'medewerker'])
+            ->where('status', 'pending')
             ->orderByDesc('aanvraag_datum');
 
         if ((int) $user->role_id === 3) {
