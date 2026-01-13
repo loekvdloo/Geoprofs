@@ -1,333 +1,285 @@
 import React, { useEffect, useState } from "react";
-import { router } from "@inertiajs/react";
+import { Head, router, usePage } from "@inertiajs/react";
 import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+
+/**
+ * Helper: datum formatteren
+ */
+const formatDate = (iso) => {
+    if (!iso) return "-";
+    const d = new Date(iso);
+    return d.toLocaleDateString("nl-NL");
+};
 
 export default function Beoordeling() {
-    const [user, setUser] = useState(null);
-    const [aanvragen, setAanvragen] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [processing, setProcessing] = useState(false);
-    const [error, setError] = useState("");
-    const [selected, setSelected] = useState([]); // Nieuw!
+    const page = usePage();
+    const user = page.props?.auth?.user ?? page.props?.user ?? null;
 
+    const [aanvragen, setAanvragen] = useState([]);
+    const [selected, setSelected] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    /**
+     * Data ophalen + autorisatie check
+     */
     useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) {
+        if (!user) {
             router.visit("/login");
             return;
         }
 
-        axios
-            .get("/api/user", { headers: { Authorization: `Bearer ${token}` } })
-            .then((res) => setUser(res.data))
-            .catch(() => {
-                localStorage.removeItem("token");
-                router.visit("/login");
-            });
-    }, []);
+        const isAdmin = Number(user.role_id) === 1;
+        const isManager = Number(user.role_id) === 3;
 
-    useEffect(() => {
-        if (!user) return;
-
-        if (user.role_id !== 1) {
+        if (!isAdmin && !isManager) {
             router.visit("/dashboard");
             return;
         }
 
-        const token = localStorage.getItem("token");
-        if (!token) {
-            router.visit("/login");
-            return;
-        }
-
-        setLoading(true);
-
-        const fetchData = async () => {
+        const load = async () => {
             try {
-                const token = localStorage.getItem("token");
-
-                const [, aanvragenRes] = await Promise.all([
-                    axios.get("/api/verlof/types", {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }),
-                    axios.get("/api/verlof/mijn-aanvragen", {
-                        headers: { Authorization: `Bearer ${token}` },
-                    }),
-                ]);
-
-                setAanvragen(aanvragenRes.data);
-            } catch (err) {
-                console.error(err);
-                setError("Kon aanvragen niet laden.");
-                if (err.response?.status === 401) router.visit("/login");
+                setLoading(true);
+                setError("");
+                const res = await axios.get("/api/verlof/beoordeling");
+                setAanvragen(Array.isArray(res.data) ? res.data : []);
+            } catch (e) {
+                console.error(e);
+                setError("Kon verlofaanvragen niet laden.");
             } finally {
                 setLoading(false);
             }
         };
-        fetchData();
+
+        load();
     }, [user]);
 
-    // Checkbox toggle
-    const toggleSelect = (id) => {
-        setSelected((prev) =>
-            prev.includes(id)
-                ? prev.filter((x) => x !== id)
-                : [...prev, id]
-        );
+    /**
+     * Bulk acties
+     */
+    const refresh = async () => {
+        const res = await axios.get("/api/verlof/beoordeling");
+        setAanvragen(res.data);
+        setSelected([]);
     };
 
-    // Selecteer alles
-    const toggleSelectAll = () => {
-        if (selected.length === aanvragen.length) {
-            setSelected([]);
-        } else {
-            setSelected(aanvragen.map((a) => a.aanvraag_id));
-        }
-    };
-
-    // Accept één aanvraag
-    const handleAccept = async (id) => {
-        setProcessing(true);
-        const token = localStorage.getItem("token");
+    const acceptSingle = async (id) => {
         try {
-            await axios.post(
-                `/api/verlof/beoordeling/${id}/accept`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setAanvragen((prev) =>
-                prev.map((a) =>
-                    a.aanvraag_id === id ? { ...a, status: "accepted" } : a
-                )
-            );
-        } catch (err) {
-            console.error(err);
-            setError("Kon aanvraag niet accepteren.");
-        } finally {
-            setProcessing(false);
+            setError("");
+            await axios.post("/verlof/bulk-accept", { ids: [id] });
+            await refresh();
+        } catch (e) {
+            console.error(e);
+            setError("Goedkeuren mislukt.");
         }
     };
 
-    // Reject één aanvraag
-    const handleReject = async (id) => {
-        setProcessing(true);
-        const token = localStorage.getItem("token");
+    const rejectSingle = async (id) => {
         try {
-            await axios.post(
-                `/api/verlof/beoordeling/${id}/reject`,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setAanvragen((prev) =>
-                prev.map((a) =>
-                    a.aanvraag_id === id ? { ...a, status: "rejected" } : a
-                )
-            );
-        } catch (err) {
-            console.error(err);
-            setError("Kon aanvraag niet weigeren.");
-        } finally {
-            setProcessing(false);
+            setError("");
+            await axios.post("/verlof/bulk-accept", { ids: [id] });
+            await refresh();
+        } catch (e) {
+            console.error(e);
+            setError("Afwijzen mislukt.");
         }
     };
 
-    // BULK accept
-    const handleBulkAccept = async () => {
-        if (selected.length === 0) return;
-
-        setProcessing(true);
-        const token = localStorage.getItem("token");
-
+    const bulkAccept = async () => {
         try {
-            await axios.post(
-                `/api/verlof/bulk-accept`,
-                { ids: selected },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setAanvragen((prev) =>
-                prev.map((a) =>
-                    selected.includes(a.aanvraag_id)
-                        ? { ...a, status: "accepted" }
-                        : a
-                )
-            );
-
-            setSelected([]);
-        } catch (err) {
-            console.error(err);
-            setError("Kon bulk acceptatie niet uitvoeren.");
-        } finally {
-            setProcessing(false);
+            setError("");
+            await axios.post("/verlof/bulk-reject", { ids: selected });;
+            await refresh();
+        } catch (e) {
+            console.error(e);
+            setError("Bulk goedkeuren is mislukt.");
         }
     };
 
-    // BULK reject
-    const handleBulkReject = async () => {
-        if (selected.length === 0) return;
-
-        setProcessing(true);
-        const token = localStorage.getItem("token");
-
+    const bulkReject = async () => {
         try {
-            await axios.post(
-                `/api/verlof/bulk-reject`,
-                { ids: selected },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setAanvragen((prev) =>
-                prev.map((a) =>
-                    selected.includes(a.aanvraag_id)
-                        ? { ...a, status: "rejected" }
-                        : a
-                )
-            );
-
-            setSelected([]);
-        } catch (err) {
-            console.error(err);
-            setError("Kon bulk weigering niet uitvoeren.");
-        } finally {
-            setProcessing(false);
+            setError("");
+            await axios.post("/verlof/bulk-reject", { ids: selected });
+            await refresh();
+        } catch (e) {
+            console.error(e);
+            setError("Bulk afwijzen is mislukt.");
         }
     };
-
-    if (!user || loading) {
-        return <p className="text-center mt-10">Laden...</p>;
-    }
 
     return (
-        <AuthenticatedLayout user={user}>
-            <Head title="Verlofaanvragen beoordelen" />
-            <div className="max-w-5xl mx-auto p-6">
-                {error && (
-                    <p className="text-red-500 text-center font-medium mb-4">
-                        {error}
-                    </p>
+        <AuthenticatedLayout>
+            <Head title="Verlof beoordelen" />
+
+            <div className="max-w-6xl mx-auto py-10">
+                <h1 className="text-2xl font-bold mb-4">Verlof beoordelen</h1>
+
+                {loading && <p>Laden...</p>}
+
+                {!loading && error && (
+                    <div className="mb-4 p-3 border border-red-300 rounded">
+                        <p className="font-semibold">Fout</p>
+                        <p>{error}</p>
+                    </div>
                 )}
 
-                <h1 className="text-2xl font-semibold mb-6">Verlofaanvragen</h1>
+                {!loading && !error && aanvragen.length === 0 && (
+                    <p>Geen openstaande verlofaanvragen.</p>
+                )}
 
-                {aanvragen.length === 0 ? (
-                    <p className="text-gray-600 mt-4 text-center">
-                        Geen verlofaanvragen gevonden.
-                    </p>
-                ) : (
-                    <>
-                        <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="p-3 text-center">
+                {!loading && !error && aanvragen.length > 0 && (
+                    <div className="mt-6">
+                        {/* Bulk acties */}
+                        <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm opacity-80">
+                                {aanvragen.length} aanvraag/aanvragen
+                            </p>
+
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    className="px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                                    disabled={selected.length === 0}
+                                    onClick={bulkAccept}
+                                >
+                                    Bulk goedkeuren ({selected.length})
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="px-3 py-2 rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                                    disabled={selected.length === 0}
+                                    onClick={bulkReject}
+                                >
+                                    Bulk afwijzen ({selected.length})
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tabel */}
+                        <div className="overflow-x-auto border rounded">
+                            <table className="w-full text-sm">
+                                <thead className="bg-black/5">
+                                <tr className="text-left">
+                                    <th className="p-3 w-10">
                                         <input
                                             type="checkbox"
                                             checked={
-                                                selected.length ===
-                                                aanvragen.length
+                                                aanvragen.length > 0 &&
+                                                selected.length === aanvragen.length
                                             }
-                                            onChange={toggleSelectAll}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelected(
+                                                        aanvragen.map(
+                                                            (a) => a.aanvraag_id
+                                                        )
+                                                    );
+                                                } else {
+                                                    setSelected([]);
+                                                }
+                                            }}
                                         />
                                     </th>
-                                    <th className="text-left p-3">Medewerker</th>
-                                    <th className="text-left p-3">Type</th>
-                                    <th className="text-left p-3">Periode</th>
-                                    <th className="text-left p-3">Reden</th>
-                                    <th className="text-left p-3">Status</th>
-                                    <th className="p-3 text-center">Actie</th>
+                                    <th className="p-3">Medewerker</th>
+                                    <th className="p-3">Type</th>
+                                    <th className="p-3">Periode</th>
+                                    <th className="p-3">Reden</th>
+                                    <th className="p-3">Status</th>
+                                    <th className="p-3 text-right">Acties</th>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {aanvragen.map((a) => (
-                                    <tr key={a.aanvraag_id} className="border-t">
-                                        <td className="p-3 text-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={selected.includes(
-                                                    a.aanvraag_id
-                                                )}
-                                                onChange={() =>
-                                                    toggleSelect(a.aanvraag_id)
-                                                }
-                                            />
-                                        </td>
-                                        <td className="p-3">
-                                            {a.medewerker?.voornaam}
-                                        </td>
-                                        <td className="p-3">{a.type?.naam}</td>
-                                        <td className="p-3">
-                                            {a.start_datum} - {a.eind_datum}
-                                        </td>
-                                        <td className="p-3">{a.reden}</td>
-                                        <td className="p-3">
-                                            <span
-                                                className={`px-2 py-1 rounded text-sm ${
-                                                    a.status === "pending"
-                                                        ? "bg-yellow-200 text-yellow-800"
-                                                        : a.status ===
-                                                          "accepted"
-                                                        ? "bg-green-200 text-green-800"
-                                                        : "bg-red-200 text-red-800"
-                                                }`}
-                                            >
-                                                {a.status}
-                                            </span>
-                                        </td>
-                                        <td className="p-3 text-center space-x-2">
-                                            {a.status === "pending" && (
-                                                <>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleAccept(
-                                                                a.aanvraag_id
-                                                            )
-                                                        }
-                                                        disabled={processing}
-                                                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                                                    >
-                                                        ✅ Accepteer
-                                                    </button>
-                                                    <button
-                                                        onClick={() =>
-                                                            handleReject(
-                                                                a.aanvraag_id
-                                                            )
-                                                        }
-                                                        disabled={processing}
-                                                        className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-                                                    >
-                                                        ❌ Weiger
-                                                    </button>
-                                                </>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
 
-                        {/* BULK ACTIE KNOPPEN */}
-                        {selected.length > 0 && (
-                            <div className="mt-5 text-center space-x-3">
-                                <button
-                                    onClick={handleBulkAccept}
-                                    disabled={processing}
-                                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                                >
-                                    ✔ {selected.length} geselecteerde accepteren
-                                </button>
+                                <tbody>
+                                {aanvragen.map((a) => {
+                                    const checked = selected.includes(
+                                        a.aanvraag_id
+                                    );
 
-                                <button
-                                    onClick={handleBulkReject}
-                                    disabled={processing}
-                                    className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-                                >
-                                    ❌ {selected.length} geselecteerde weigeren
-                                </button>
-                            </div>
-                        )}
-                    </>
+                                    return (
+                                        <tr
+                                            key={a.aanvraag_id}
+                                            className="border-t hover:bg-black/2"
+                                        >
+                                            <td className="p-3">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    onChange={(e) => {
+                                                        if (e.target.checked) {
+                                                            setSelected([
+                                                                ...selected,
+                                                                a.aanvraag_id,
+                                                            ]);
+                                                        } else {
+                                                            setSelected(
+                                                                selected.filter(
+                                                                    (id) =>
+                                                                        id !==
+                                                                        a.aanvraag_id
+                                                                )
+                                                            );
+                                                        }
+                                                    }}
+                                                />
+                                            </td>
+
+                                            <td className="p-3">
+                                                <div className="font-medium">
+                                                    {a.medewerker?.voornaam}{" "}
+                                                    {a.medewerker?.achternaam}
+                                                </div>
+                                                <div className="text-xs opacity-70">
+                                                    {a.medewerker?.email}
+                                                </div>
+                                            </td>
+
+                                            <td className="p-3">
+                                                {a.type?.naam ?? "-"}
+                                            </td>
+
+                                            <td className="p-3">
+                                                {formatDate(a.start_datum)} –{" "}
+                                                {formatDate(a.eind_datum)}
+                                            </td>
+
+                                            <td className="p-3">
+                                                {a.reden ?? "-"}
+                                            </td>
+
+                                            <td className="p-3">
+                                                    <span className="px-2 py-1 rounded border text-xs">
+                                                        {a.status}
+                                                    </span>
+                                            </td>
+
+                                            <td className="p-3 text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        type="button"
+                                                        className="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700"
+                                                        onClick={() => acceptSingle(a.aanvraag_id)}
+                                                    >
+                                                        Goedkeuren
+                                                    </button>
+
+                                                    <button
+                                                        type="button"
+                                                        className="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700"
+                                                        onClick={() => rejectSingle(a.aanvraag_id)}
+                                                    >
+                                                        Afwijzen
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 )}
             </div>
         </AuthenticatedLayout>

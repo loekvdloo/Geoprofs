@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             VerloftypeSeeder::class,
             RoleSeeder::class,
+            AfdelingSeeder::class,
             UsersSeeder::class,
         ]);
 

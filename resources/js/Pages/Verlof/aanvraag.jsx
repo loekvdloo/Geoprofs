@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, router } from "@inertiajs/react";
+import {Head, router} from "@inertiajs/react";
 
-export default function Verlofaanvraag({ auth }) {
+export default function Verlofaanvraag({auth}) {
     const [form, setForm] = useState({
         verlof_type_id: "",
         start_datum: "",
@@ -31,13 +31,13 @@ export default function Verlofaanvraag({ auth }) {
             setLoading(true);
             const [typesRes, aanvragenRes, saldoRes] = await Promise.all([
                 axios.get("/api/verlof/types", {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {Authorization: `Bearer ${token}`},
                 }),
                 axios.get("/api/verlof/mijn-aanvragen", {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {Authorization: `Bearer ${token}`},
                 }),
                 axios.get("/api/verlof/saldo", {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: {Authorization: `Bearer ${token}`},
                 }),
             ]);
             setTypes(typesRes.data);
@@ -46,7 +46,7 @@ export default function Verlofaanvraag({ auth }) {
         } catch (err) {
             console.error(err);
             if (err.response?.status === 401) {
-                setError("Je sessie is verlopen. Log opnieuw in."   );
+                setError("Je sessie is verlopen. Log opnieuw in.");
                 localStorage.removeItem("token");
                 setTimeout(() => router.visit("/login"), 1500);
             } else {
@@ -58,7 +58,7 @@ export default function Verlofaanvraag({ auth }) {
     };
 
     const handleChange = (field, value) => {
-        setForm((prev) => ({ ...prev, [field]: value }));
+        setForm((prev) => ({...prev, [field]: value}));
     };
 
     const handleSubmit = async (e) => {
@@ -72,7 +72,7 @@ export default function Verlofaanvraag({ auth }) {
 
         try {
             await axios.post("/api/verlof/aanvragen", form, {
-                headers: { Authorization: `Bearer ${token}` },
+                headers: {Authorization: `Bearer ${token}`},
             });
             await fetchData(); // herlaad aanvragen
         } catch (err) {
@@ -82,11 +82,12 @@ export default function Verlofaanvraag({ auth }) {
     };
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Verlofaanvraag" />
+            <Head title="Verlofaanvraag"/>
 
             <div className="max-w-5xl mx-auto p-6 space-y-8">
                 {/* SALDO */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between shadow-sm">
+                <div
+                    className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between shadow-sm">
                     <div>
                         <h2 className="text-lg font-semibold text-blue-800">
                             Jouw verlofsaldo
@@ -122,6 +123,8 @@ export default function Verlofaanvraag({ auth }) {
                                 Verloftype
                             </label>
                             <select
+                                id="verlof_type_id"
+                                name="verlof_type_id"
                                 value={form.verlof_type_id}
                                 onChange={(e) =>
                                     handleChange("verlof_type_id", e.target.value)
@@ -146,7 +149,10 @@ export default function Verlofaanvraag({ auth }) {
                                 <label className="block text-sm font-medium">
                                     Startdatum
                                 </label>
+
                                 <input
+                                    id="start_datum"
+                                    name="start_datum"
                                     type="date"
                                     value={form.start_datum}
                                     onChange={(e) =>
@@ -161,6 +167,8 @@ export default function Verlofaanvraag({ auth }) {
                                     Einddatum
                                 </label>
                                 <input
+                                    id="eind_datum"
+                                    name="eind_datum"
                                     type="date"
                                     value={form.eind_datum}
                                     onChange={(e) =>
@@ -175,6 +183,8 @@ export default function Verlofaanvraag({ auth }) {
                         <div>
                             <label className="block text-sm font-medium">Reden</label>
                             <textarea
+                                id="reden"
+                                name="reden"
                                 rows="3"
                                 value={form.reden}
                                 onChange={(e) => handleChange("reden", e.target.value)}
@@ -206,36 +216,36 @@ export default function Verlofaanvraag({ auth }) {
                     ) : (
                         <table className="w-full border border-gray-300 rounded-lg overflow-hidden">
                             <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="text-left p-3">Type</th>
-                                    <th className="text-left p-3">Periode</th>
-                                    <th className="text-left p-3">Reden</th>
-                                    <th className="text-left p-3">Status</th>
-                                </tr>
+                            <tr>
+                                <th className="text-left p-3">Type</th>
+                                <th className="text-left p-3">Periode</th>
+                                <th className="text-left p-3">Reden</th>
+                                <th className="text-left p-3">Status</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {mijnAanvragen.map((a) => (
-                                    <tr key={a.aanvraag_id} className="border-t">
-                                        <td className="p-3">{a.type?.naam}</td>
-                                        <td className="p-3">
-                                            {a.start_datum} - {a.eind_datum}
-                                        </td>
-                                        <td className="p-3">{a.reden}</td>
-                                        <td className="p-3">
+                            {mijnAanvragen.map((a) => (
+                                <tr key={a.aanvraag_id} className="border-t">
+                                    <td className="p-3">{a.type?.naam}</td>
+                                    <td className="p-3">
+                                        {a.start_datum} - {a.eind_datum}
+                                    </td>
+                                    <td className="p-3">{a.reden}</td>
+                                    <td className="p-3">
                                             <span
                                                 className={`px-2 py-1 rounded text-sm ${
                                                     a.status === "pending"
                                                         ? "bg-yellow-200 text-yellow-800"
                                                         : a.status === "accepted"
-                                                        ? "bg-green-200 text-green-800"
-                                                        : "bg-red-200 text-red-800"
+                                                            ? "bg-green-200 text-green-800"
+                                                            : "bg-red-200 text-red-800"
                                                 }`}
                                             >
                                                 {a.status}
                                             </span>
-                                        </td>
-                                    </tr>
-                                ))}
+                                    </td>
+                                </tr>
+                            ))}
                             </tbody>
                         </table>
                     )}
