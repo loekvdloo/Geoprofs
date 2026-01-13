@@ -11,7 +11,9 @@ export default function AuthenticatedLayout({ children }) {
     useEffect(() => {
         const name =
             auth?.user?.name ??
-            [auth?.user?.voornaam, auth?.user?.achternaam].filter(Boolean).join(" ") ??
+            [auth?.user?.voornaam, auth?.user?.achternaam]
+                .filter(Boolean)
+                .join(" ") ??
             "";
         setUserName(name);
         setLoading(false);
@@ -44,6 +46,11 @@ export default function AuthenticatedLayout({ children }) {
                     {isAdmin && (
                         <a href="/records" className="hover:underline">
                             Records
+                        </a>
+                    )}
+                    {isAdmin && (
+                        <a href="/admin/users" className="hover:underline">
+                            Gebruikers
                         </a>
                     )}
                 </nav>

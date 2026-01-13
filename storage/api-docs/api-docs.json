@@ -11,6 +11,183 @@
         }
     ],
     "paths": {
+        "/admin/users": {
+            "get": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Haal alle gebruikers op (admin)",
+                "operationId": "5f64744dd34c7792e7a958bc31767b99",
+                "responses": {
+                    "200": {
+                        "description": "Lijst van gebruikers",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "user_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "voornaam": {
+                                                "type": "string",
+                                                "example": "Loek"
+                                            },
+                                            "achternaam": {
+                                                "type": "string",
+                                                "example": "de Vries"
+                                            },
+                                            "email": {
+                                                "type": "string",
+                                                "example": "loek@example.com"
+                                            },
+                                            "role": {
+                                                "properties": {
+                                                    "role_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "role_naam": {
+                                                        "type": "string",
+                                                        "example": "Admin"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "afdeling": {
+                                                "properties": {
+                                                    "afdeling_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "afdeling_naam": {
+                                                        "type": "string",
+                                                        "example": "IT"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Geen rechten"
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/admin/users/{id}/role-afdeling": {
+            "put": {
+                "tags": [
+                    "Admin - Users"
+                ],
+                "summary": "Update rol en afdeling van een gebruiker (admin)",
+                "operationId": "513177faeb5924017e500f2434b9c1c4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID van de gebruiker",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "role_id",
+                                    "afdeling_id"
+                                ],
+                                "properties": {
+                                    "role_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "afdeling_id": {
+                                        "type": "integer",
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Rol en afdeling bijgewerkt",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Rol en afdeling bijgewerkt"
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "voornaam": {
+                                                    "type": "string",
+                                                    "example": "Loek"
+                                                },
+                                                "achternaam": {
+                                                    "type": "string",
+                                                    "example": "de Vries"
+                                                },
+                                                "role_id": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "afdeling_id": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Geen rechten"
+                    },
+                    "401": {
+                        "description": "Niet geautoriseerd"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/register": {
             "post": {
                 "tags": [
@@ -767,6 +944,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Admin - Users",
+            "description": "Beheer van gebruikers, rollen en afdelingen"
+        },
         {
             "name": "VerlofBeoordeling",
             "description": "API endpoints voor het beoordelen van verlof aanvragen"

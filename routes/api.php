@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VerlofaanvraagController;
 use App\Http\Controllers\VerlofBeoordelingController;
 use App\Http\Controllers\Admin\LoginAttemptAdminController;
+use App\Http\Controllers\Admin\UserRoleController;
 use App\Models\Verloftype;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -14,6 +15,12 @@ Route::post('/login', [AuthController::class, 'apiLogin']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    // Alle gebruikers ophalen
+    Route::get('/admin/users', [UserRoleController::class, 'index']);
+
+    // Rol + afdeling updaten
+    Route::put('/admin/users/{id}/role-afdeling', [UserRoleController::class, 'updateRoleAfdeling']);
 
     Route::get('verlof/types', fn() => Verloftype::orderBy('naam')->get(['verlof_type_id', 'naam', 'betaald']));
     Route::post('verlof/aanvragen', [VerlofaanvraagController::class, 'store']);
