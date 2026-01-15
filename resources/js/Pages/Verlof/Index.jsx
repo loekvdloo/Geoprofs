@@ -1,5 +1,5 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -60,70 +60,79 @@ export default function Dashboard() {
                         </div>
                     </div>
 
+                    {/* Team overzicht */}
                     <div className="bg-white shadow-sm rounded-lg p-6">
                         <h3 className="text-lg font-semibold text-gray-700 mb-4">
                             Teamoverzicht deze week
                         </h3>
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead>
-                            <tr>
-                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                    Naam
-                                </th>
-                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                    Type Afwezigheid
-                                </th>
-                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                    Periode
-                                </th>
-                                <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                                    Status
-                                </th>
-                            </tr>
+                                <tr>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                                        Naam
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                                        Type Afwezigheid
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                                        Periode
+                                    </th>
+                                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                                        Status
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                            {teamCalendar.map((item, idx) => (
-                                <tr key={idx}>
-                                    <td className="px-4 py-2 text-sm text-gray-700">
-                                        {item.name}
-                                    </td>
-                                    <td className="px-4 py-2 text-sm text-gray-700">
-                                        {item.type}
-                                    </td>
-                                    <td className="px-4 py-2 text-sm text-gray-700">
-                                        {item.period}
-                                    </td>
-                                    <td
-                                        className={`px-4 py-2 text-sm font-semibold ${
-                                            item.status === "approved"
-                                                ? "text-[#3FB950]"
-                                                : item.status === "pending"
+                                {teamCalendar.map((item, idx) => (
+                                    <tr key={idx}>
+                                        <td className="px-4 py-2 text-sm text-gray-700">
+                                            {item.name}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-700">
+                                            {item.type}
+                                        </td>
+                                        <td className="px-4 py-2 text-sm text-gray-700">
+                                            {item.period}
+                                        </td>
+                                        <td
+                                            className={`px-4 py-2 text-sm font-semibold ${
+                                                item.status === "approved"
+                                                    ? "text-[#3FB950]"
+                                                    : item.status === "pending"
                                                     ? "text-[#F59E0B]"
                                                     : "text-red-500"
-                                        }`}
-                                    >
-                                        {item.status}
-                                    </td>
-                                </tr>
-                            ))}
+                                            }`}
+                                        >
+                                            {item.status}
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
 
                     {/* Snelle acties */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <a
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <Link
                             href="/verlof/aanvraag"
                             className="block bg-[#0E3A5B] text-white p-4 rounded-lg shadow hover:bg-[#09406b] transition"
                         >
                             Nieuwe verlofaanvraag indienen
-                        </a>
-                        <a
+                        </Link>
+
+                        <Link
                             href="/verlof/beoordeling"
                             className="block bg-[#3FB950] text-white p-4 rounded-lg shadow hover:bg-[#2d8b3d] transition"
                         >
                             Openstaande aanvragen beoordelen
-                        </a>
+                        </Link>
+
+                        <Link
+                            href="/verlof/agenda"
+                            className="block bg-indigo-600 text-white p-4 rounded-lg shadow hover:bg-indigo-700 transition"
+                        >
+                            Naar verlofagenda
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -22,6 +22,7 @@ Route::middleware('auth')->group(function () {
         ]);
 
     })->name('admin.users.index');
+    Route::get('/verlof/bezetting', fn () => Inertia::render('Verlof/Bezetting'))->name('verlof.bezetting');
     // Gebruiker bewerken (rol + afdeling)
     Route::get('/admin/users/{user}/edit', function (User $user) {
         abort_if(auth()->user()->role_id !== 1, 403);
@@ -50,6 +51,12 @@ Route::middleware('auth')->group(function () {
         }
         return Inertia::render('Admin/LoginAttempts');
     })->name('records.index');
+
+ Route::middleware('auth')->group(function () {
+    Route::get('/verlof/agenda', fn () => Inertia::render('Verlof/agenda'))
+        ->name('verlof.agenda');
+});
+
 });
 
 // Alleen voor gasten
@@ -70,6 +77,9 @@ Route::get('/verlof/beoordeling', fn() => Inertia::render('Verlof/beoordeling'))
 Route::middleware('auth')->group(function () {
     Route::post('/verlof/bulk-accept', [VerlofBeoordelingController::class, 'bulkAccept']);
     Route::post('/verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
+    
+
+    
 });
 Route::get('/profile/edit', fn() => Inertia::render('Profile/Edit'))
     ->name('profile.edit');

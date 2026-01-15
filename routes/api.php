@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\UserRoleController;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Afdeling;
+use App\Http\Controllers\Api\BezettingController;
 use App\Models\Verloftype;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -59,4 +60,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('admin/login-attempts', [LoginAttemptAdminController::class, 'index']);
 
+    Route::get('verlof/bezetting', [BezettingController::class, 'index']);
+    Route::get('verlof/bezetting/dag', [BezettingController::class, 'day']);
 });
