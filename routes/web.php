@@ -51,6 +51,15 @@ Route::middleware('auth')->group(function () {
         return Inertia::render('Admin/LoginAttempts');
     })->name('records.index');
 
+ Route::middleware('auth')->group(function () {
+    Route::get('/verlof/agenda', fn () => Inertia::render('Verlof/agenda'))
+        ->name('verlof.agenda');
+});
+
+
     // Logout
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    
+
+    
 });

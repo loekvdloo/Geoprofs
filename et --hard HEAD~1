@@ -1,0 +1,77 @@
+[33mc8218b5[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mdevelopment[m[33m, [m[1;31morigin/development[m[33m)[m google extention
+[33mce5618f[m[33m ([m[1;31morigin/US016-Reminder-email[m[33m)[m fix: beoordeling pagina toonde geen verlofs
+[33m58ed83f[m fix: Beoordeelingspagina toont geen verlof voor managers
+[33m842e87b[m Seeders ik heb 3 managers aangemaakt elke manager heeft een eigen afdeling. 6 medewerker gemaakt elke 2 medewerkers zitten in een afdeling met en manager
+[33m8fca168[m Basic Structure US016
+[33m3d65b78[m Merge branch 'test-env' into development
+[33m5f932dd[m[33m ([m[1;31morigin/test-env[m[33m)[m US002 tests Done
+[33maf1d724[m End 2 End tests
+[33m2fe5aa4[m Rename file
+[33ma37e073[m END 2 END test
+[33m31ee6ca[m added crypress
+[33m1105ca5[m fixed profile tests
+[33me212414[m Verlof/aanvraag.jsx kleine aanpassingen voor betere test flow.
+[33m78a56ca[m Automatische E2E test packages.
+[33mb370d33[m US010.01 tests done ✅ - Test case 1 – Admin ziet foutieve loginpogingen van bestaande gebruiker - Test case 2 – Foutieve login met onbekend e-mailadres - Test case 3 – Niet-admin heeft geen toegang tot overzicht
+[33mcf9a795[m Unsuccesful tests deleted
+[33m1a095fb[m factory aangepast zodat testen weer slagen
+[33m568a1a4[m Merge remote-tracking branch 'origin/development' into development
+[33ma24b09e[m[33m ([m[1;31morigin/ahmad-test-envoirment[m[33m)[m feat:  login_attempt tabel naar frontend gefetcht
+[33m6948e74[m feat: removed registering succeeded login attempts.
+[33me89fe11[m fix: LITTLE BUG FIXES
+[33mc32591f[m bulk weigeren en accepteren
+[33m7a762ef[m fix: verlof paginas niet geladen BUG FIXED
+[33mf56d4b9[m fix: blokkade aan gebruikers bij 3x foutief inloggen bug fixed.
+[33m13c78ae[m Merge branch 'development' of https://github.com/loekvdloo/Geoprofs into verlof-beoordeling
+[33m2e16721[m BUG FIXES Fixes are not done.
+[33m591bd60[m feat(users) Users aangemaakt met seeders. Role seeder ook aangemaakt. Voor eenvoudig werken is dit belangrijk
+[33m9fdfb07[m[33m ([m[1;31morigin/verlofsaldo[m[33m, [m[1;32mverlofsaldo[m[33m)[m fix
+[33mab74817[m Merge branch 'development' of https://github.com/loekvdloo/Geoprofs into verlofsaldo
+[33m8805751[m alles gefixed wat kapot was door migrations
+[33mf3cbdbf[m pull from dev
+[33m127625e[m Merge branch 'development' of https://github.com/loekvdloo/Geoprofs into verlofsaldo
+[33m0857149[m versaldo tonen en aftrekken na aceptatie
+[33mca3d68e[m DEBUGS
+[33me662f9a[m Swagger documentation update
+[33m369c01e[m AuthenticatedLayout.jsx debugged
+[33mcc041d8[m Merge remote-tracking branch 'origin/development' into development
+[33mbfaf78c[m added profile page and fixed the api's and made nieuw api's
+[33m62b4c8c[m[33m ([m[1;31morigin/merge_test[m[33m)[m Debugging file
+[33me978a76[m Merge branch 'login_audit' into merge_test
+[33mfffff23[m[33m ([m[1;31morigin/login_audit[m[33m)[m DEBUGGING BLOCKING FUNCTION
+[33m488f87f[m[33m ([m[1;31morigin/automatisch_email[m[33m)[m swagger code toegevoegd
+[33m95e631f[m made tests for mail and a small change to the header
+[33m383eecb[m Commit before risky move 💯
+[33m7511daf[m User blokkade na 3x foutive login pogingen ✅
+[33ma270f73[m API probleem gefixt ✅ - API Registreren - Login gefixt.
+[33m62d5a97[m updated dashboard and authenticatedlayout tijdelijk
+[33mc350be0[m bug fix beoordeling page
+[33m8ff68ee[m only admin on beoordeling page
+[33m9c9f227[m geautomatischeerd dat je emails krijgt bij aanmaken, goedkeuren en afkeuren van verlof
+[33m231f858[m[33m ([m[1;31morigin/verlofstatus[m[33m)[m added mijn verlofaavragen
+[33mc6e5840[m EXTRA COMMIT
+[33m5fbe71f[m[33m ([m[1;31morigin/login/register[m[33m)[m fixed nav to page's
+[33m09996d9[m test update
+[33mbf1cfcd[m Inloggen logpogingen voltooid
+[33m2148de5[m NEW MIGRATIONS
+[33m5fe7b89[m fixd the login problem and made the api for verlof
+[33mf1a6ba8[m bug fix
+[33m3ffc818[m Merge remote-tracking branch 'origin/development' into development
+[33mec88a54[m little changes
+[33m63878d3[m het pullen van verlof-aanvraag en verlof-beoordeling
+[33m3e0feeb[m kleine aanpassing login
+[33m87aaa23[m made api for login and logout
+[33m9cc8164[m[33m ([m[1;31morigin/verlof-aanvragen[m[33m, [m[1;32mverlof-aanvragen[m[33m)[m hernoemen van test.jsx naar aanvraag.jsx
+[33m698ca90[m accepteren en weigeren van verlofs
+[33mf3e9be5[m Merge branch 'verlof-aanvragen' into development
+[33m1fcbdca[m test verloftype en test create new verlofaanvraag
+[33mf81289d[m Merge branch 'development' of https://github.com/loekvdloo/Geoprofs into development
+[33m7049e73[m Frontend omgeving voor functionaliteit uitproberen.
+[33m8747d5d[m Verlof aanvraag functie werkt 67/100% ✅
+[33m428193f[m Verlofaanvragen models
+[33m3204271[m ERD -> Migrations ✅
+[33mddc8627[m Docker environment for Ahmad
+[33m037b66d[m deleted some tests
+[33ma3cb32f[m added css tailwind and csrf, xss
+[33m4e1bbb6[m[33m ([m[1;32mmain[m[33m)[m first commit
+[33mfeee118[m first commit
