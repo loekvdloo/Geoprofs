@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/verlof', fn () => Inertia::render('Verlof/Index'))->name('verlof.index');
     Route::get('/verlof/aanvraag', fn () => Inertia::render('Verlof/aanvraag'))->name('verlof.aanvraag');
     Route::get('/verlof/beoordeling', fn () => Inertia::render('Verlof/beoordeling'))->name('verlof.beoordeling');
+    Route::get('/verlof/bezetting', fn () => Inertia::render('Verlof/Bezetting'))->name('verlof.bezetting');
 
     // Verlof acties (bulk)
     Route::post('/verlof/bulk-accept', [VerlofBeoordelingController::class, 'bulkAccept'])
