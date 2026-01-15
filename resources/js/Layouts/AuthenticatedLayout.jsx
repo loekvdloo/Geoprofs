@@ -41,6 +41,9 @@ export default function AuthenticatedLayout({ children }) {
                     <a href="/verlof" className="hover:underline">
                         Verlof
                     </a>
+                    <a className="btn btn-outline-primary" href="/verlof/bezetting">
+                        Bezetting
+                    </a>
                     {isAdmin && (
                         <a href="/records" className="hover:underline">
                             Records

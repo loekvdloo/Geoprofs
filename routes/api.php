@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\VerlofaanvraagController;
 use App\Http\Controllers\VerlofBeoordelingController;
 use App\Http\Controllers\Admin\LoginAttemptAdminController;
+use App\Http\Controllers\Api\BezettingController;
 use App\Models\Verloftype;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -35,4 +36,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
 
     Route::get('admin/login-attempts', [LoginAttemptAdminController::class, 'index']);
+
+    Route::get('verlof/bezetting', [BezettingController::class, 'index']);
+    Route::get('verlof/bezetting/dag', [BezettingController::class, 'day']);
 });

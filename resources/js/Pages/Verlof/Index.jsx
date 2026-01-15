@@ -31,7 +31,6 @@ export default function Dashboard() {
 
             <div className="py-8">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8 space-y-6">
-                    {/* Stat cards */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="bg-white shadow-sm rounded-lg p-6 border-l-4 border-[#0E3A5B]">
                             <h3 className="text-lg font-semibold text-gray-700">
