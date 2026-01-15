@@ -1,18 +1,21 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-    testDir: './tests/E2E',
+    timeout: 60000, // globale timeout 60s
+    testDir: "./tests/E2E",
     use: {
-        baseURL: process.env.E2E_BASE_URL || 'http://127.0.0.1:8000',
-        headless: false,
-        screenshot: 'only-on-failure',
-        video: 'retain-on-failure',
-        trace: 'retain-on-failure',
+        baseURL: "http://localhost:8000",
+        headless: false, // zodat je ziet wat er gebeurt
+        viewport: { width: 1280, height: 720 },
     },
     projects: [
         {
-            name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
+            name: "firefox",
+            use: { ...devices["Desktop Firefox"] },
+        },
+        {
+            name: "chromium",
+            use: { ...devices["Desktop Chrome"] },
         },
     ],
 });

@@ -10,11 +10,39 @@ use Inertia\Inertia;
 
 // Alleen voor ingelogden
 Route::middleware('auth')->group(function () {
-    Route::get('/', fn () => Inertia::render('Dashboard'))->name('home');
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
-    Route::get('/verlof', fn () => Inertia::render('Verlof/Index'))->name('verlof.index');
+    Route::get('/', fn() => Inertia::render('Dashboard'))->name('home');
+    Route::get('/dashboard', fn() => Inertia::render('Dashboard'))->name('dashboard');
+    Route::get('/verlof', fn() => Inertia::render('Verlof/Index'))->name('verlof.index');
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
+    Route::get('/admin/users', function () {
+        abort_if(auth()->user()->role_id !== 1, 403);
+        return Inertia::render('Admin/UsersIndex', [
+            'users' => User::with(['role', 'afdeling'])->get(),
+        ]);
+
+    })->name('admin.users.index');
+    // Gebruiker bewerken (rol + afdeling)
+    Route::get('/admin/users/{user}/edit', function (User $user) {
+        abort_if(auth()->user()->role_id !== 1, 403);
+
+        return Inertia::render('Admin/UserRoleEdit', [
+            'user' => $user,
+            'roles' => Role::all(),
+            'afdelingen' => Afdeling::all(),
+        ]);
+    })->name('admin.users.edit');
+
+    Route::middleware(['auth'])->get('/api/admin/users/{id}', function ($id) {
+        $user = User::with(['role', 'afdeling'])->find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return response()->json($user);
+    });
+    
     Route::get('/records', function () {
         $user = auth()->user();
         if (!$user || (int) $user->role_id !== 1) {
@@ -39,9 +67,9 @@ Route::get('/verlof/aanvraag', fn() => Inertia::render('Verlof/aanvraag'))
 Route::get('/verlof/beoordeling', fn() => Inertia::render('Verlof/beoordeling'))
     ->name('verlof.beoordeling');
 
-    Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function () {
     Route::post('/verlof/bulk-accept', [VerlofBeoordelingController::class, 'bulkAccept']);
     Route::post('/verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
-    });
+});
 Route::get('/profile/edit', fn() => Inertia::render('Profile/Edit'))
     ->name('profile.edit');

@@ -5,9 +5,13 @@ use App\Http\Controllers\VerlofaanvraagController;
 use App\Http\Controllers\VerlofBeoordelingController;
 use App\Http\Controllers\Admin\LoginAttemptAdminController;
 use App\Http\Controllers\Admin\UserRoleController;
+use App\Models\User;
+use App\Models\Role;
+use App\Models\Afdeling;
 use App\Models\Verloftype;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'apiLogin']);
@@ -15,6 +19,12 @@ Route::post('/login', [AuthController::class, 'apiLogin']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+
+
+
+    Route::get('/admin/users', [UserRoleController::class, 'index']);
+    // Rol + afdeling updaten
+    Route::put('/admin/users/{id}/role-afdeling', [UserRoleController::class, 'updateRoleAfdeling']);
 
     // Alle gebruikers ophalen
     Route::get('/admin/users', [UserRoleController::class, 'index']);
@@ -29,6 +39,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('verlof/beoordeling/{aanvraag}/accept', [VerlofBeoordelingController::class, 'accept']);
     Route::post('verlof/beoordeling/{aanvraag}/reject', [VerlofBeoordelingController::class, 'reject']);
 
+    // Alle gebruikers ophalen
+    Route::get('/admin/users', [UserRoleController::class, 'index']);
+
+    // Rol + afdeling updaten
+    Route::put('/admin/users/{id}/role-afdeling', [UserRoleController::class, 'updateRoleAfdeling']);
+
     Route::put('user', [AuthController::class, 'updateUser']);
     Route::put('user/password', [AuthController::class, 'updatePassword']);
 
@@ -42,4 +58,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
 
     Route::get('admin/login-attempts', [LoginAttemptAdminController::class, 'index']);
+
 });
