@@ -7,16 +7,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Verlofaanvraag;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $primaryKey = 'user_id';
 
     protected $fillable = [
@@ -30,6 +26,19 @@ class User extends Authenticatable
         'password',
     ];
 
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'account_status' => 'boolean',
+        'blocked' => 'boolean',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
+
+    // Relaties
     public function afdeling()
     {
         return $this->belongsTo(Afdeling::class, 'afdeling_id', 'afdeling_id');
@@ -50,33 +59,22 @@ class User extends Authenticatable
         return $this->hasMany(LoginAttempt::class, 'user_id', 'user_id');
     }
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
-    protected $casts = [
-        'account_status' => 'boolean',
-        'blocked' => 'boolean',
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
+    // Verlof aanvragen relatie
     public function aanvragen()
     {
-        return $this->hasMany(Verlofaanvraag::class, 'medewerker_id');
+        return $this->hasMany(Verlofaanvraag::class, 'user_id', 'user_id');
     }
+
+    // Helper om te checken of gebruiker admin is
     public function isAdmin(): bool
     {
-        // Voor dit project: role_id 1 = Admin (RoleSeeder)
-        return (int)$this->role_id === 1;
+        // role_id 1 = Admin
+        return (int) $this->role_id === 1;
+    }
+
+    // Full name helper
+    public function fullName(): string
+    {
+        return trim($this->voornaam . ' ' . $this->achternaam);
     }
 }
