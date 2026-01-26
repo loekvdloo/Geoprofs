@@ -8,7 +8,7 @@ use App\Models\Role;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class NonAdminCannotAccessLoginAttemptsTest extends TestCase
+class TC_US01001_ADM_03_Test extends TestCase
 {
     use RefreshDatabase;
 

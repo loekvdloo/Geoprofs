@@ -53,6 +53,8 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('admin.users.index');
 
+    // Gebruiker bewerken (rol + afdeling)
+
     // Admin: gebruiker bewerken
     Route::get('/admin/users/{user}/edit', function (User $user) {
         abort_if(auth()->user()->role_id !== 1, 403);
@@ -63,16 +65,45 @@ Route::middleware('auth')->group(function () {
         ]);
     })->name('admin.users.edit');
 
+    Route::middleware(['auth'])->get('/api/admin/users/{id}', function ($id) {
+        $user = User::with(['role', 'afdeling'])->find($id);
+
+        if (!$user) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
+        return response()->json($user);
+    });
+
     // Admin: login attempts
     Route::get('/records', function () {
         abort_if(auth()->user()->role_id !== 1, 403);
         return Inertia::render('Admin/LoginAttempts');
     })->name('records.index');
 
-    // Profiel bewerken
-    Route::get('/profile/edit', fn() => Inertia::render('Profile/Edit'))->name('profile.edit');
+    Route::middleware('auth')->group(function () {
+        Route::get('/verlof/agenda', fn() => Inertia::render('Verlof/agenda'))
+            ->name('verlof.agenda');
+    });
 
-    // Bulk acties voor verlof
-    Route::post('/verlof/bulk-accept', [VerlofBeoordelingController::class, 'bulkAccept']);
-    Route::post('/verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
+
+    //bezettings niveau pagina
+    Route::get('/verlof/bezetting', function () {
+        $user = auth()->user();
+
+        if (!$user || !in_array((int) $user->role_id, [1, 3], true)) {
+            return redirect()->route('dashboard');
+        }
+
+        return Inertia::render('Verlof/Bezetting');
+    })->name('verlof.bezetting');
+
 });
+// Profiel bewerken
+Route::get('/profile/edit', fn() => Inertia::render('Profile/Edit'))->name('profile.edit');
+
+// Bulk acties voor verlof
+Route::post('/verlof/bulk-accept', [VerlofBeoordelingController::class, 'bulkAccept']);
+Route::post('/verlof/bulk-reject', [VerlofBeoordelingController::class, 'bulkReject']);
+Route::get('/profile/edit', fn() => Inertia::render('Profile/Edit'))
+    ->name('profile.edit');

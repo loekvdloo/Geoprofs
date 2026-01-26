@@ -22,7 +22,7 @@ test.describe('TC-US001-VERLOF-01 – succesvolle verlofaanvraag', () => {
         // 1) Login pagina
         await page.goto(`${baseURL}/login`);
 
-        await page.locator('#email').fill('medewerker@geoprofs.nl');
+        await page.locator('#email').fill('medewerker1@geoprofs.nl');
         await page.locator('#password').fill('12345678');
 
         await page.getByRole('button', { name: /inloggen/i }).click();

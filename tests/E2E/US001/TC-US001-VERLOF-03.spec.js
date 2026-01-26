@@ -6,7 +6,7 @@ test.describe('TC-US001-VERLOF-03 – ontbrekende verplichte velden', () => {
     test('verlofaanvraag zonder reden wordt afgewezen en er wordt niets opgeslagen', async ({ page }) => {
         const baseUrl = process.env.APP_URL ?? 'http://127.0.0.1:8000';
 
-        const email = 'medewerker@geoprofs.nl';
+        const email = 'medewerker1@geoprofs.nl';
         const password = '12345678';
 
         // --- Debug logging (laat staan tot alles stabiel is)

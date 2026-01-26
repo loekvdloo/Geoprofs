@@ -100,6 +100,26 @@ export default function Bezetting() {
         load(from, to);
     };
 
+    useEffect(() => {
+        if (!modalOpen) return;
+
+        const originalOverflow = document.body.style.overflow;
+        const originalPaddingRight = document.body.style.paddingRight;
+
+        // voorkom "layout shift" door scrollbar verdwijnen (nice-to-have)
+        const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+        document.body.style.overflow = "hidden";
+        if (scrollBarWidth > 0) {
+            document.body.style.paddingRight = `${scrollBarWidth}px`;
+        }
+
+        return () => {
+            document.body.style.overflow = originalOverflow;
+            document.body.style.paddingRight = originalPaddingRight;
+        };
+    }, [modalOpen]);
+
     const presentCountInModal = useMemo(
         () => dayEmployees.filter((x) => x.status === "present").length,
         [dayEmployees]
@@ -242,8 +262,7 @@ export default function Bezetting() {
                         if (e.target === e.currentTarget) closeModal();
                     }}
                 >
-                    <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden">
-                        <div className="px-6 py-4 border-b flex items-start justify-between gap-4">
+                    <div className="w-full max-w-3xl bg-white rounded-lg shadow-lg overflow-hidden max-h-[85vh] flex flex-col">                        <div className="px-6 py-4 border-b flex items-start justify-between gap-4">
                             <div>
                                 <div className="text-lg font-semibold">
                                     Afdelingslijst – {formatDateLabel(selectedDay.date)}
@@ -258,7 +277,7 @@ export default function Bezetting() {
                             </button>
                         </div>
 
-                        <div className="p-6">
+                        <div className="p-6 overflow-y-auto">
                             {dayError && <div className="mb-4 text-sm text-red-600">{dayError}</div>}
 
                             {dayLoading ? (

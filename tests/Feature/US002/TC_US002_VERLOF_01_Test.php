@@ -16,16 +16,13 @@ class TC_US002_VERLOF_01_Test extends TestCase
 
     public function test_tc_us002_verlof_01_reden_wordt_opgeslagen_en_exact_teruggegeven_in_mijn_aanvragen(): void
     {
-        // Seed basisdata
         $this->seed(RoleSeeder::class);
         $this->seed(VerloftypeSeeder::class);
 
         $employeeRole = Role::where('role_naam', 'Medewerker')->firstOrFail();
 
-        // SQLite kent geen ILIKE -> gebruik lower() + like
         $vakantieType = Verloftype::whereRaw('lower(naam) like ?', ['%vakantie%'])->firstOrFail();
 
-        // User + token
         $plainPassword = '12345678';
         $employee = User::factory()->create([
             'email'    => 'medewerker@geoprofs.nl',
@@ -35,12 +32,10 @@ class TC_US002_VERLOF_01_Test extends TestCase
 
         $token = $employee->createToken('test-token')->plainTextToken;
 
-        // Payload
         $startDatum = '2025-12-10';
         $eindDatum  = '2025-12-12';
         $reden      = 'Vakantie met familie naar Spanje';
 
-        // 1) Create (API)
         $createResponse = $this->withHeader('Authorization', "Bearer {$token}")
             ->postJson('/api/verlof/aanvragen', [
                 'verlof_type_id' => $vakantieType->verlof_type_id,
@@ -51,7 +46,6 @@ class TC_US002_VERLOF_01_Test extends TestCase
 
         $createResponse->assertSuccessful();
 
-        // 2) Assert DB: datums worden als datetime opgeslagen (00:00:00)
         $this->assertDatabaseHas('verlofaanvraag', [
             'user_id'        => $employee->user_id,
             'verlof_type_id' => $vakantieType->verlof_type_id,
@@ -60,13 +54,11 @@ class TC_US002_VERLOF_01_Test extends TestCase
             'reden'          => $reden,
         ]);
 
-        // 3) GET mijn aanvragen: check dat reden exact terugkomt
         $listResponse = $this->withHeader('Authorization', "Bearer {$token}")
             ->getJson('/api/verlof/mijn-aanvragen');
 
         $listResponse->assertSuccessful();
 
-        // We gokken niet op exacte response-structuur; we eisen wél dat reden exact voorkomt.
         $listResponse->assertJsonFragment([
             'reden' => $reden,
         ]);

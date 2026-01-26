@@ -13,14 +13,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'voornaam' => 'Test',
-            'achternaam' => 'User',
-            'email' => 'kameel@kameel.com',
-            'password' => Hash::make('12345678'),
-            'telefoonnummer' => '0612345678',
-            'account_status' => true,
-        ]);
 
         $this->call([
             VerloftypeSeeder::class,

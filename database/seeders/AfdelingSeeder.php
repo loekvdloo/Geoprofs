@@ -9,19 +9,18 @@ class AfdelingSeeder extends Seeder
 {
     public function run(): void
     {
-        DB::table('afdeling')->updateOrInsert(
-            ['afdeling_naam' => 'Afdeling A'],
-            ['afdeling_naam' => 'Afdeling A']
-        );
+        $afdelingen = [
+            'ICT',
+            'HR',
+            'Finance',
+            'Planning',
+        ];
 
-        DB::table('afdeling')->updateOrInsert(
-            ['afdeling_naam' => 'Afdeling B'],
-            ['afdeling_naam' => 'Afdeling B']
-        );
-
-        DB::table('afdeling')->updateOrInsert(
-            ['afdeling_naam' => 'Afdeling C'],
-            ['afdeling_naam' => 'Afdeling C']
-        );
+        foreach ($afdelingen as $naam) {
+            DB::table('afdeling')->updateOrInsert(
+                ['afdeling_naam' => $naam],
+                ['afdeling_naam' => $naam]
+            );
+        }
     }
 }

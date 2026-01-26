@@ -6,7 +6,7 @@ test.describe('TC-US001-VERLOF-02 – ongeldige periode', () => {
     test('einddatum vóór startdatum wordt afgekeurd en er wordt niets opgeslagen', async ({ page, request }) => {
         const baseUrl = 'http://127.0.0.1:8000';
 
-        const email = 'medewerker@geoprofs.nl';
+        const email = 'medewerker1@geoprofs.nl';
         const password = '12345678';
 
         // ongeldig: eind < start
